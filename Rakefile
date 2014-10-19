@@ -1,22 +1,36 @@
 desc "Prepare Data"
 task :prepare_data do
   require "csv"
+  require "json"
 
-  stops = CSV.read("gtfs/stops.txt").map! { |s| [s[0], s[2]]}
-  header = stops.shift
+  # stop_name, stop_id
+  stops = CSV.read("gtfs/stops.txt").map! { |s| [s[2], s[0]]}
+  stops.shift
   stops
-    .delete_if { |s| /Station/.match(s.last) }
-    .map! { |s| s.last.gsub!(/ Caltrain/, ''); s }
-  stops.unshift(header)
-  CSV.open("data/stops.csv", "wb") { |c| stops.each { |i| c << i } }
+    .keep_if { |s| /\A\d+\Z/.match(s.last) }
+    .map! { |s|
+      s.first.gsub!(/ Caltrain/, '')
+      # TODO: hack the data
+      s[0] = "So. San Francisco" if s[0] == "So. San Francisco Station" # shorten the name
+      s[0] = "Tamien" if s[0] == "Tamien Station" # merge station
+      s[0] = "San Jose" if s[0] == "San Jose Diridon"  # name reversed
+      s[0] = "San Jose Diridon" if s[0] == "San Jose Station" # name reversed
+      s
+    }
+  # stop_name, stop_id
+  hash = Hash.new { |h, k| h[k] = [] }
+  stops.each { |s| hash[s.first].push(s.last) }
+  File.open("data/stops.json", "wb").write(hash.to_json)
 
   times = CSV.read("gtfs/stop_times.txt").map! { |s| s[0..4]}
-  header = times.shift
+  times.shift
   times
     .keep_if { |s| /14OCT/.match(s[0]) }
     .map! { |s| id = s[0].split('-'); s[0] = [id[0], id[4]].join('-'); s }
-  times.unshift(header)
-  CSV.open("data/times.csv", "wb") { |c| times.each { |i| c << i } }
+  # trip_id, arrival_time, departure_time, stop_id, stop_sequence
+  hash = Hash.new { |h, k| h[k] = {} }
+  times.each { |t| hash[t[0]][t[3]] = [t[1], t[2], t[4]] }
+  File.open("data/times.json", "wb").write(hash.to_json)
 
   puts "Prepared Data."
 end
