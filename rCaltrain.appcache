@@ -1,9 +1,11 @@
 CACHE MANIFEST
-# Updated at 2015-02-08 14:46:05 -0800
+# Updated at 2015-02-16 15:17:34 -0800
 
 CACHE:
+data/calendar.json
+data/calendar_dates.json
+data/routes.json
 data/stops.json
-data/times.json
 icons/icon-72.png
 icons/icon-72@2x.png
 icons/icon-76.png

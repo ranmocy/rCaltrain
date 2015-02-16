@@ -1,3 +1,19 @@
+class Hash
+  def map(&block)
+    if block_given?
+      self.inject({}) { |h, (k,v)| h[k] = yield(k, v); h }
+    else
+      raise "block is needed for map."
+    end
+  end
+end
+
+class File
+  def self.write(filename, content, mode='')
+    open(filename, "w#{mode}") { |f| f.write(content) }
+  end
+end
+
 desc "Download GTFS data"
 task :download_data do
   require 'tempfile'
@@ -21,49 +37,166 @@ task :prepare_data do
   require "json"
   require "plist"
 
-  # remove header and unify station_id by name
-  hash = CSV.read("gtfs/stops.txt")[1..-1]
-    .map! { |s| [s[2], s[0]] }
-    .keep_if { |s| /\A\d+\Z/.match(s.last) }
-    .inject(Hash.new { |h, k| h[k] = [] }) { |h, s|
-      name = s[0].gsub(/ Caltrain/, '')
-      # TODO: hack the data
-      name = "So. San Francisco" if name == "So. San Francisco Station" # shorten the name
-      name = "Tamien" if name == "Tamien Station" # merge station
-      name = "San Jose" if name == "San Jose Diridon"  # name reversed
-      name = "San Jose Diridon" if name == "San Jose Station" # name reversed
-      # stop_name => [stop_id]
-      h[name].push(s.last.to_i)
-      h
-    }
-  # JSON
-  File.open("data/stops.json", "wb") do |f|
-    f.write(hash.to_json)
-  end
-  # Plist
-  File.open("data/stops.plist", "wb") do |f|
-    f.write(Plist::Emit.dump(hash))
+  # Extend CSV
+  class CSV
+    class Table
+      def keep_if(&block)
+        delete_if { |item| !yield(item) }
+      end
+    end
+    class Row
+      # supports row.attr access method
+      def method_missing(meth, *args, &blk)
+        if meth =~ /\A(.*)\=\Z/
+          self[$1.to_sym] = block_given? ? yield(args[0]) : args[0]
+        else
+          fetch(meth, *args, &blk)
+        end
+      end
+    end
   end
 
-  # trip_id => [[stop_id, arrival_time/departure_time(in seconds)]]
-  hash = CSV.read("gtfs/stop_times.txt")[1..-1]
-    .map! { |s| s[0..4] }
-    .keep_if { |s| /14OCT/.match(s[0]) }
-    .inject(Hash.new { |h, k| h[k] = [] }) { |h, s|
-      id = s[0].split('-')
-      s[0] = [id[0], id[4]].join('-')
-      require 'pry'; binding.pry if s[1] != s[2] # arrival_time should always equal to departure_time
-      t = s[1].split(":").map(&:to_i)
-      h[s[0]][s[4].to_i - 1] = [s[3].to_i, t[0] * 60 * 60 + t[1] * 60 + t[2]]
-      h
+  # Read from CSV, prepare it with `block`, write what returns to JSON and PLIST files
+  # If multiply names, expected to return a hash as NAME => CONTENT
+  def prepare_for(*names, &block)
+    raise "block is needed for prepare_for!" unless block_given?
+    raise "filename is needed!" if names.size < 1
+
+    csvs = names.map { |name|
+      CSV.read("gtfs/#{name}.txt", headers: true, header_converters: :symbol, converters: :all)
     }
-  # JSON
-  File.open("data/times.json", "wb") do |f|
-    f.write(hash.to_json)
+    hashes = yield(*csvs)
+    hashes = { names[0] => hashes } if names.size == 1 # if only one name, make result as a hash
+    hashes.each { |name, hash|
+      File.write("data/#{name}.json", hash.to_json)
+      File.write("data/#{name}.plist", Plist::Emit.dump(hash))
+    }
   end
-  # Plist
-  File.open("data/times.plist", "wb") do |f|
-    f.write(Plist::Emit.dump(hash))
+
+  # From:
+  #   calendar:
+  #     service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+  #     CT-14OCT-Caltrain-Sunday-02,0,0,0,0,0,0,1,20150118,20240929
+  #   calendar_dates:
+  #     service_id,date,exception_type
+  #     CT-14OCT-Caltrain-Sunday-02,20150704,1
+  # To:
+  #   calendar:
+  #     service_id => [fields]
+  #     CT-14OCT-XXX => [0,0,0,0,0,0,1,20150118,20240929]
+  #   calendar_dates:
+  #     service_id => [[date, exception_type]]
+  #     CT-14OCT-XXX => [[20150704,1]]
+  prepare_for("calendar", "calendar_dates") do |calendar, calendar_dates|
+    calendar = calendar
+      .group_by(&:service_id)
+      .map { |service_id, items|
+        items.map { |item|
+          item.fields[1..-1]
+        }.flatten
+      }
+
+    dates = calendar_dates
+      .group_by(&:service_id)
+      .map { |service_id, items|
+        items.map { |item| item.fields[1..-1] }
+      }
+
+    { calendar: calendar, calendar_dates: dates }
+  end
+
+  # Remove header and unify station_id by name
+  # From:
+  #   stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station,platform_code
+  #   70011,70011,"San Francisco Caltrain",,  37.776390,-122.394992,1,,0,ctsf,NB
+  # To:
+  #   stop_name => [stop_id1, stop_id2]
+  #   "San Francisco" => [70011, 70012]
+  prepare_for("stops") do |stops|
+    stops
+      .each { |item|
+        # check data (if its scheme is changed)
+        if item.stop_name !~ / Caltrain/
+          require 'pry'; binding.pry
+        end
+      }
+      .keep_if { |item| item.stop_id.is_a?(Integer) }
+      .each { |item|
+        name = item.stop_name.gsub(/ Caltrain/, '')
+        # TODO: hack the data
+        name = "So. San Francisco" if name == "So. San Francisco Station" # shorten the name
+        name = "Tamien" if name == "Tamien Station" # merge station
+        name = "San Jose" if name == "San Jose Diridon"  # name reversed
+        name = "San Jose Diridon" if name == "San Jose Station" # name reversed
+        item.stop_name = name
+      }
+      .group_by(&:stop_name)
+      .map { |name, items| # customized Hash#map
+        items.map(&:stop_id).sort
+      }
+  end
+
+  # From:
+  #   routes:
+  #     route_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color
+  #     Bu-121,,"Bullet",,2,,E31837
+  #   trips:
+  #     route_id,service_id,trip_id,trip_headsign,trip_short_name,direction_id,block_id,shape_id
+  #     Lo-121,CT-14OCT-Caltrain-Saturday-02,6507770-CT-14OCT-Caltrain-Saturday-02,"San Jose Caltrain Station",422,1,,"cal_sf_sj"
+  #   stop_times:
+  #     trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
+  #     6507770-CT-14OCT-Caltrain-Saturday-02,08:15:00,08:15:00,70012,1,0,0
+  # To:
+  #   trips:
+  #     { route_long_name => { service_id => { trip_id => [[stop_id, arrival_time/departure_time(in seconds)]] } } }
+  #     { "Bullet" => { "CT-14OCT-XXX" => { "650770-CT-14OCT-XXX" => [[70012, 29700], ...] } } }
+  prepare_for("routes", "trips", "stop_times") do |routes, trips, stop_times|
+    # { trip_id => [[stop_id, arrival_time/departure_time(in seconds)]] }
+    times = stop_times
+      .each { |item|
+        # check data (if its scheme is changed)
+        if item.arrival_time != item.departure_time
+          require 'pry'; binding.pry
+        end
+      }
+      .keep_if { |item| /14OCT/.match(item.trip_id) } # only 14 OCT plans
+      .group_by(&:trip_id)
+      .map { |trip_id, trips| # customized Hash#map
+        trips
+          .sort_by(&:stop_sequence)
+          .map { |trip|
+            t = trip.arrival_time.split(":").map(&:to_i)
+            [trip.stop_id, t[0] * 60 * 60 + t[1] * 60 + t[2]]
+          }
+      }
+
+    # { route_id => { service_id => { trip_id => ... } } }
+    trips = trips
+      .group_by(&:route_id)
+      .map { |route_id, route_trips|
+        route_trips
+          .group_by(&:service_id)
+          .map { |service_id, service_trips|
+            service_trips
+              .group_by(&:trip_id)
+              .map { |trip_id, trip_trips|
+                times[trip_id]
+              }
+          }
+      }
+
+    # { route_long_name => { service_id => ... } }
+    routes = routes
+      .group_by(&:route_long_name)
+      .map { |name, routes|
+        routes
+          .map(&:route_id)
+          .inject({}) { |h, route_id|
+            h.merge(trips[route_id])
+          }
+      }
+
+    { routes: routes }
   end
 
   puts "Prepared Data."
