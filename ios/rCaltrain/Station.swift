@@ -26,24 +26,25 @@ class Station {
     class func getStations(byName name: String) -> [Station]? {
         return StationStruct.nameToStations[name]
     }
+    class func addStation(name: String, id: Int) {
+        let station = Station(name: name, id: id)
+
+        StationStruct.names.add(name)
+        StationStruct.idToStation[id] = station
+        if (StationStruct.nameToStations[name] != nil) {
+            StationStruct.nameToStations[name]!.append(station)
+        } else {
+            StationStruct.nameToStations[name] = [station]
+        }
+    }
 
 
     // Instance variables/methods
     let name: String
     let id: Int
 
-    init(name: String, id: Int) {
+    fileprivate init(name: String, id: Int) {
         self.name = name
         self.id = id
-
-        StationStruct.names.add(name)
-        StationStruct.idToStation[id] = self
-
-        if (StationStruct.nameToStations[name] != nil) {
-            StationStruct.nameToStations[name]!.append(self)
-        } else {
-            StationStruct.nameToStations[name] = [self]
-        }
     }
-
 }

@@ -11,17 +11,10 @@ import Foundation
 class Trip {
 
     let id : String
-    var stops = [Stop]()
+    let stops : [Stop]
 
-    init(id: String) {
-        self.id = id
-    }
-
-    convenience init(id: String, stopsArray: NSArray) {
-        self.init(id: id)
-
-        // FIXME: can't use `for data in stopsArray as [NSArray]`
-        // which will crash when compile as release version
+    init(id: String, stopsArray: NSArray) {
+        var stops = [Stop]()
         for data in stopsArray as! [NSArray] {
             assert(data.count == 2, "data length is \(data.count), expected 2!")
 
@@ -29,16 +22,13 @@ class Trip {
             let time = Date(timeIntervalSince1970: TimeInterval(data[1] as! Int))
             
             if let station = Station.getStation(byId: stationId) {
-                self.stops.append(Stop(station: station, departureTime: time, arrivalTime: time))
+                stops.append(Stop(station: station, departureTime: time, arrivalTime: time))
             } else {
                 fatalError("can't find station id\(stationId)")
             }
         }
-    }
-
-    func addStop(_ stop : Stop) -> Trip {
-        self.stops.append(stop)
-        return self
+        self.id = id
+        self.stops = stops
     }
 
     func findFrom(_ from: Station, to: Station) -> (Stop, Stop)? {

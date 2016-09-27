@@ -13,30 +13,28 @@ class Route {
     fileprivate struct RouteStruct {
         static var routesHash = [String: Route]()
     }
+
     class var allRoutes : [String: Route] {
         get { return RouteStruct.routesHash }
         set { RouteStruct.routesHash = newValue }
     }
 
-    let name : String
-    var services = [String: Service]()
-
-    init (name : String) {
-        self.name = name
-        Route.allRoutes[name] = self
-    }
-
-    convenience init (name : String, servicesDict : NSDictionary ) {
-        self.init(name: name)
-
+    class func addRoute(name : String, servicesDict : NSDictionary) {
+        var services = [String: Service]()
         for (serviceId, tripsDict) in servicesDict as! [String: NSDictionary] {
-            self.addService(Service(id: serviceId, tripsDict: tripsDict))
+            services[serviceId] = Service.addService(id: serviceId, tripsDict: tripsDict)
         }
+        let route = Route(name: name, services: services)
+        Route.allRoutes[name] = route
     }
 
-    func addService(_ service : Service) -> Route {
-        self.services[service.id] = service
-        return self
+
+    let name : String
+    let services : [String: Service]
+
+    fileprivate init(name : String, services : [String: Service]) {
+        self.name = name
+        self.services = services
     }
 
 }

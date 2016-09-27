@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //  "22ND ST" => [70021, 70022]
         for (name, idsArray) in readPlistAsDict("stops") as! [String: NSArray] {
             for id in idsArray as! [Int] {
-                Station(name: name, id: id)
+                Station.addStation(name: name, id: id)
             }
         }
 
@@ -28,7 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // { route_id => { service_id => { trip_id => [[stop_id, arrival_time/departure_time(in seconds)]] } } }
         // { "Bullet" => { "CT-14OCT-XXX" => { "650770-CT-14OCT-XXX" => [[70012, 29700], ...] } } }
         for (routeName, servicesDict) in readPlistAsDict("routes") as! [String: NSDictionary] {
-            Route(name: routeName, servicesDict: servicesDict)
+            Route.addRoute(name: routeName, servicesDict: servicesDict)
         }
 
         // load calendar data

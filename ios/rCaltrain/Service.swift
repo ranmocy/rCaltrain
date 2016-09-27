@@ -24,34 +24,31 @@ class Service {
         return ServiceStruct.idToServices[id]
     }
 
+    class func addService(id: String, tripsDict : NSDictionary) -> Service {
+        var trips = [String: Trip]()
+        for (tripId, stopsArray) in tripsDict as! [String: NSArray] {
+            trips[tripId] = Trip(id: tripId, stopsArray: stopsArray)
+        }
+        let service = Service(id: id, trips: trips)
+        ServiceStruct.services.append(service)
+        if (ServiceStruct.idToServices[id] != nil) {
+            ServiceStruct.idToServices[id]!.append(service)
+        } else {
+            ServiceStruct.idToServices[id] = [service]
+        }
+        return service
+    }
+
+
     // Instance variables/methods
     let id : String
-    var trips = [String: Trip]()
+    let trips : [String: Trip]
     var calendar : Calendar!
     var calendar_dates = [CalendarDates]()
 
-    init (id: String) {
+    fileprivate init (id: String, trips: [String: Trip]) {
         self.id = id
-        ServiceStruct.services.append(self)
-
-        if (ServiceStruct.idToServices[id] != nil) {
-            ServiceStruct.idToServices[id]!.append(self)
-        } else {
-            ServiceStruct.idToServices[id] = [self]
-        }
-    }
-
-    convenience init (id: String, tripsDict : NSDictionary) {
-        self.init(id: id)
-        
-        for (tripId, stopsArray) in tripsDict as! [String: NSArray] {
-            self.addTrip(Trip(id: tripId, stopsArray: stopsArray))
-        }
-    }
-
-    func addTrip(_ trip: Trip) -> Service {
-        self.trips[trip.id] = trip
-        return self
+        self.trips = trips
     }
 
     func isValid(atWeekday day: Int) -> Bool {
