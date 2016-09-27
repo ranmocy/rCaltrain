@@ -11,7 +11,7 @@ import Foundation
 class Service {
 
     // Class variables/methods
-    private struct ServiceStruct {
+    fileprivate struct ServiceStruct {
         static var services = [Service]()
         static var idToServices = [String: [Service]]()
     }
@@ -49,19 +49,19 @@ class Service {
         }
     }
 
-    func addTrip(trip: Trip) -> Service {
+    func addTrip(_ trip: Trip) -> Service {
         self.trips[trip.id] = trip
         return self
     }
 
     func isValid(atWeekday day: Int) -> Bool {
-        let date = NSDate()
+        let date = Date()
         return (calendar.start_date <= date) && (date <= calendar.end_date) && calendar.isValid(weekday: day)
     }
 
     func isValidAtToday() -> Bool {
-        let date = NSDate()
-        let day = Calendar.currentCalendar.components(.Weekday, fromDate: date).weekday
+        let date = Date()
+        let day = Calendar.currentCalendar.dateComponents([.weekday], from: date).weekday
 
         var exceptional_add = false
         var exceptional_remove = false
@@ -69,7 +69,7 @@ class Service {
         // Only Today will consider holiday
         // (inCalendar && not inDates2) || inDates1
         for eDate in calendar_dates {
-            if (date.compare(eDate.exception_date) == .OrderedSame) {
+            if (date.compare(eDate.exception_date as Date) == .orderedSame) {
                 if (eDate.toAdd) {
                     exceptional_add = true
                 } else {
@@ -78,7 +78,7 @@ class Service {
             }
         }
 
-        return (isValid(atWeekday: day) && !exceptional_remove) || exceptional_add
+        return (isValid(atWeekday: day!) && !exceptional_remove) || exceptional_add
     }
 
     func isValidAtWeekday() -> Bool {
@@ -99,7 +99,7 @@ class Service {
         return isValid(atWeekday: 1)
     }
 
-    func isValidAt(withCategory: String) -> Bool {
+    func isValidAt(_ withCategory: String) -> Bool {
         switch withCategory {
         case "Now":
             return isValidAtToday()

@@ -11,14 +11,14 @@ import Foundation
 class Station {
 
     // Class variables/methods
-    private struct StationStruct {
+    fileprivate struct StationStruct {
         static var names = NSMutableOrderedSet()
         static var idToStation = [Int: Station]()
         static var nameToStations = [String: [Station]]()
     }
 
     class func getNames() -> [String] {
-        return (StationStruct.names.array as! [String]).sort(<)
+        return (StationStruct.names.array as! [String]).sorted(by: <)
     }
     class func getStation(byId id: Int) -> Station? {
         return StationStruct.idToStation[id]
@@ -36,7 +36,7 @@ class Station {
         self.name = name
         self.id = id
 
-        StationStruct.names.addObject(name)
+        StationStruct.names.add(name)
         StationStruct.idToStation[id] = self
 
         if (StationStruct.nameToStations[name] != nil) {

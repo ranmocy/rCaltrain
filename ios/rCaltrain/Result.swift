@@ -13,14 +13,14 @@ class Result {
     let departureStop: Stop
     let arrivalStop: Stop
 
-    var departureTime: NSDate {
-        return departureStop.departureTime
+    var departureTime: Date {
+        return departureStop.departureTime as Date
     }
-    var arrivalTime: NSDate {
-        return arrivalStop.arrivalTime
+    var arrivalTime: Date {
+        return arrivalStop.arrivalTime as Date
     }
 
-    private func dateToStr(date: NSDate) -> String {
+    fileprivate func dateToStr(_ date: Date) -> String {
         let interval = Int(date.timeIntervalSince1970)
         let hours = String(interval / 3600 % 24).rjust(2, withStr: "0")
         let minutes = String(interval / 60 % 60).rjust(2, withStr: "0")
@@ -34,8 +34,8 @@ class Result {
         return dateToStr(arrivalTime)
     }
 
-    var duration: NSTimeInterval {
-        return arrivalStop.arrivalTime.timeIntervalSinceDate(departureStop.departureTime)
+    var duration: TimeInterval {
+        return arrivalStop.arrivalTime.timeIntervalSince(departureStop.departureTime as Date)
     }
     var durationInMin: Int {
         return Int(duration) / 60

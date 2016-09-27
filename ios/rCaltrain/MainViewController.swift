@@ -19,7 +19,7 @@ class MainViewController: UIViewController {
     @IBOutlet var reverseButton: UIButton!
     @IBOutlet var resultsTableView: ResultTableView!
 
-    @IBAction func unwindFromModalViewController(segue: UIStoryboardSegue) {
+    @IBAction func unwindFromModalViewController(_ segue: UIStoryboardSegue) {
         if let _ = segue.identifier {
             updateResults()
         } else {
@@ -27,49 +27,49 @@ class MainViewController: UIViewController {
         }
     }
 
-    @IBAction func reversePressed(sender: UIButton) {
+    @IBAction func reversePressed(_ sender: UIButton) {
         let departureTitle = departureButton.currentTitle
         let arrivalTitle = arrivalButton.currentTitle
 
         if arrivalTitle == arrivalPlaceholder {
-            departureButton.setTitle(departurePlaceholder, forState: UIControlState.Normal)
+            departureButton.setTitle(departurePlaceholder, for: UIControlState())
         } else {
-            departureButton.setTitle(arrivalTitle, forState: UIControlState.Normal)
+            departureButton.setTitle(arrivalTitle, for: UIControlState())
         }
 
         if departureTitle == departurePlaceholder {
-            arrivalButton.setTitle(arrivalPlaceholder, forState: UIControlState.Normal)
+            arrivalButton.setTitle(arrivalPlaceholder, for: UIControlState())
         } else {
-            arrivalButton.setTitle(departureTitle, forState: UIControlState.Normal)
+            arrivalButton.setTitle(departureTitle, for: UIControlState())
         }
 
         updateResults()
     }
 
-    @IBAction func whenChanged(sender: UISegmentedControl) {
+    @IBAction func whenChanged(_ sender: UISegmentedControl) {
         updateResults()
     }
 
-    func savePreference(from: String, to: String, when: Int) {
-        let pref = NSUserDefaults.standardUserDefaults()
-        pref.setObject(from, forKey: "from")
-        pref.setObject(to, forKey: "to")
-        pref.setInteger(when, forKey: "when")
+    func savePreference(_ from: String, to: String, when: Int) {
+        let pref = UserDefaults.standard
+        pref.set(from, forKey: "from")
+        pref.set(to, forKey: "to")
+        pref.set(when, forKey: "when")
         pref.synchronize()
     }
 
     func loadPreference() {
-        let pref = NSUserDefaults.standardUserDefaults()
+        let pref = UserDefaults.standard
 
-        if let from = pref.stringForKey("from") {
-            departureButton.setTitle(from, forState: .Normal)
+        if let from = pref.string(forKey: "from") {
+            departureButton.setTitle(from, for: UIControlState())
         }
 
-        if let to = pref.stringForKey("to") {
-            arrivalButton.setTitle(to, forState: .Normal)
+        if let to = pref.string(forKey: "to") {
+            arrivalButton.setTitle(to, for: UIControlState())
         }
 
-        let when = pref.integerForKey("when")
+        let when = pref.integer(forKey: "when")
         let length = whenButton.numberOfSegments
         if (0 <= when && when < length) {
             whenButton.selectedSegmentIndex = when
@@ -78,8 +78,8 @@ class MainViewController: UIViewController {
 
     override func viewDidLoad() {
         // load placeholder
-        departureButton.setTitle(departurePlaceholder, forState: .Normal)
-        arrivalButton.setTitle(arrivalPlaceholder, forState: .Normal)
+        departureButton.setTitle(departurePlaceholder, for: UIControlState())
+        arrivalButton.setTitle(arrivalPlaceholder, for: UIControlState())
 
         // setups
         resultsTableView.dataSource = resultsTableView
@@ -122,7 +122,7 @@ class MainViewController: UIViewController {
         // get service category
         if (whenButton.selectedSegmentIndex == UISegmentedControlNoSegment) {
             return nil
-        } else if let name = whenButton.titleForSegmentAtIndex(whenButton.selectedSegmentIndex) {
+        } else if let name = whenButton.titleForSegment(at: whenButton.selectedSegmentIndex) {
             category = name
         } else {
             fatalError("whenButton's title is missing!")
@@ -156,7 +156,7 @@ class MainViewController: UIViewController {
                 }
             }
 
-            results.sortInPlace { $0.departureTime < $1.departureTime }
+            results.sort { $0.departureTime < $1.departureTime }
 
             resultsTableView.results = results
             resultsTableView.reloadData()

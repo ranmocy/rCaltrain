@@ -22,11 +22,11 @@ class Trip {
 
         // FIXME: can't use `for data in stopsArray as [NSArray]`
         // which will crash when compile as release version
-        for data in stopsArray {
+        for data in stopsArray as! [NSArray] {
             assert(data.count == 2, "data length is \(data.count), expected 2!")
 
             let stationId = data[0] as! Int;
-            let time = NSDate(timeIntervalSince1970: NSTimeInterval(data[1] as! Int))
+            let time = Date(timeIntervalSince1970: TimeInterval(data[1] as! Int))
             
             if let station = Station.getStation(byId: stationId) {
                 self.stops.append(Stop(station: station, departureTime: time, arrivalTime: time))
@@ -36,12 +36,12 @@ class Trip {
         }
     }
 
-    func addStop(stop : Stop) -> Trip {
+    func addStop(_ stop : Stop) -> Trip {
         self.stops.append(stop)
         return self
     }
 
-    func findFrom(from: Station, to: Station) -> (Stop, Stop)? {
+    func findFrom(_ from: Station, to: Station) -> (Stop, Stop)? {
         var i: Int = 0
         var fromStop: Stop?, toStop: Stop?
 

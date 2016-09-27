@@ -10,12 +10,10 @@ import Foundation
 
 class Calendar {
 
-    class var currentCalendar : NSCalendar {
-        get { return NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)! }
-    }
+    static let currentCalendar = Foundation.Calendar.current
 
-    private let weekdays : [Bool]
-    let start_date, end_date : NSDate!
+    fileprivate let weekdays : [Bool]
+    let start_date, end_date : Date
 
     init(dict: NSDictionary) {
         // service_id => {weekday: bool, saturday: bool, sunday: bool, start_date: date, end_date: date}
@@ -24,16 +22,16 @@ class Calendar {
         assert(dict.count == 5, "Expected item has 5 elements")
 
         // Make sunday as the first day, since we use Gregorian calendar
-        var days = [dict.valueForKey("sunday") as! Bool]
-        let weekday = dict.valueForKey("weekday") as! Bool
+        var days = [dict.value(forKey: "sunday") as! Bool]
+        let weekday = dict.value(forKey: "weekday") as! Bool
         for _ in 1...5 {
             days.append(weekday)
         }
-        days.append(dict.valueForKey("saturday") as! Bool)
+        days.append(dict.value(forKey: "saturday") as! Bool)
         weekdays = days
 
-        start_date = NSDate.parseDate(asYYYYMMDDInt: dict.valueForKey("start_date") as! Int)
-        end_date   = NSDate.parseDate(asYYYYMMDDInt: dict.valueForKey("end_date") as! Int)
+        start_date = Date.parseDate(asYYYYMMDDInt: dict.value(forKey: "start_date") as! Int)
+        end_date   = Date.parseDate(asYYYYMMDDInt: dict.value(forKey: "end_date") as! Int)
     }
 
     // day is in 1...7

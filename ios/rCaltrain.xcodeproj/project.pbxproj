@@ -17,7 +17,6 @@
 		C133540F19DB566C00F49789 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C133540E19DB566C00F49789 /* AppDelegate.swift */; };
 		C133541419DB566C00F49789 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C133541219DB566C00F49789 /* Main.storyboard */; };
 		C133541619DB566C00F49789 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C133541519DB566C00F49789 /* Images.xcassets */; };
-		C133542519DB566C00F49789 /* rCaltrainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C133542419DB566C00F49789 /* rCaltrainTests.swift */; };
 		C133542F19DCC43E00F49789 /* FromViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C133542E19DCC43E00F49789 /* FromViewController.swift */; };
 		C133543519DE082400F49789 /* ToViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C133543419DE082400F49789 /* ToViewController.swift */; };
 		C133543719DE18D900F49789 /* WhenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C133543619DE18D900F49789 /* WhenViewController.swift */; };
@@ -58,8 +57,6 @@
 		C133541319DB566C00F49789 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		C133541519DB566C00F49789 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		C133541E19DB566C00F49789 /* rCaltrainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rCaltrainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C133542319DB566C00F49789 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C133542419DB566C00F49789 /* rCaltrainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rCaltrainTests.swift; sourceTree = "<group>"; };
 		C133542E19DCC43E00F49789 /* FromViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FromViewController.swift; sourceTree = "<group>"; };
 		C133543419DE082400F49789 /* ToViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToViewController.swift; sourceTree = "<group>"; };
 		C133543619DE18D900F49789 /* WhenViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WhenViewController.swift; sourceTree = "<group>"; };
@@ -110,7 +107,6 @@
 			isa = PBXGroup;
 			children = (
 				C133540B19DB566C00F49789 /* rCaltrain */,
-				C133542119DB566C00F49789 /* rCaltrainTests */,
 				C133540A19DB566C00F49789 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -146,23 +142,6 @@
 			children = (
 				C11722481A92B4A300D99992 /* data */,
 				C133540D19DB566C00F49789 /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		C133542119DB566C00F49789 /* rCaltrainTests */ = {
-			isa = PBXGroup;
-			children = (
-				C133542419DB566C00F49789 /* rCaltrainTests.swift */,
-				C133542219DB566C00F49789 /* Supporting Files */,
-			);
-			path = rCaltrainTests;
-			sourceTree = "<group>";
-		};
-		C133542219DB566C00F49789 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				C133542319DB566C00F49789 /* Info.plist */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -248,15 +227,17 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = Ranmocy;
 				TargetAttributes = {
 					C133540819DB566C00F49789 = {
 						CreatedOnToolsVersion = 6.0.1;
 						DevelopmentTeam = 9LRFW2HY8S;
+						LastSwiftMigration = 0800;
 					};
 					C133541D19DB566C00F49789 = {
 						CreatedOnToolsVersion = 6.0.1;
+						LastSwiftMigration = 0800;
 						TestTargetID = C133540819DB566C00F49789;
 					};
 				};
@@ -333,7 +314,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C133542519DB566C00F49789 /* rCaltrainTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -372,8 +352,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -382,6 +364,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -415,8 +398,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -424,6 +409,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -433,6 +419,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -448,6 +435,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ranmocy.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -463,6 +451,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ranmocy.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -483,6 +472,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.ranmocy.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rCaltrain.app/rCaltrain";
 			};
 			name = Debug;
@@ -499,6 +489,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.ranmocy.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rCaltrain.app/rCaltrain";
 			};
 			name = Release;

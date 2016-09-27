@@ -10,7 +10,7 @@ import Foundation
 
 class Route {
 
-    private struct RouteStruct {
+    fileprivate struct RouteStruct {
         static var routesHash = [String: Route]()
     }
     class var allRoutes : [String: Route] {
@@ -34,7 +34,7 @@ class Route {
         }
     }
 
-    func addService(service : Service) -> Route {
+    func addService(_ service : Service) -> Route {
         self.services[service.id] = service
         return self
     }
