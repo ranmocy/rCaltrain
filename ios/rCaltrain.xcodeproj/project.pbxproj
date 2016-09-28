@@ -27,7 +27,6 @@
 		C1B7C5011D9B8131007EABD7 /* ToViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B7C4F11D9B8131007EABD7 /* ToViewController.swift */; };
 		C1B7C5021D9B8131007EABD7 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B7C4F21D9B8131007EABD7 /* Trip.swift */; };
 		C1B7C5031D9B8131007EABD7 /* WhenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B7C4F31D9B8131007EABD7 /* WhenViewController.swift */; };
-		C1B7C5081D9B88D6007EABD7 /* switcher.png in Resources */ = {isa = PBXBuildFile; fileRef = C1B7C5071D9B88D6007EABD7 /* switcher.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,7 +53,6 @@
 		C1B7C4F21D9B8131007EABD7 /* Trip.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
 		C1B7C4F31D9B8131007EABD7 /* WhenViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WhenViewController.swift; sourceTree = "<group>"; };
 		C1B7C5041D9B8620007EABD7 /* MyPlayground.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = MyPlayground.playground; sourceTree = "<group>"; };
-		C1B7C5071D9B88D6007EABD7 /* switcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = switcher.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,7 +85,6 @@
 		C1B7C4D11D9B7F6F007EABD7 /* rCaltrain */ = {
 			isa = PBXGroup;
 			children = (
-				C1B7C5071D9B88D6007EABD7 /* switcher.png */,
 				C1B7C5041D9B8620007EABD7 /* MyPlayground.playground */,
 				C1B7C4E41D9B8131007EABD7 /* Calendar.swift */,
 				C1B7C4E51D9B8131007EABD7 /* CalendarDates.swift */,
@@ -175,7 +172,6 @@
 			files = (
 				C1B7C4DD1D9B7F6F007EABD7 /* LaunchScreen.storyboard in Resources */,
 				C1B7C4DA1D9B7F6F007EABD7 /* Assets.xcassets in Resources */,
-				C1B7C5081D9B88D6007EABD7 /* switcher.png in Resources */,
 				C1B7C4D81D9B7F6F007EABD7 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -327,6 +323,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = rCaltrain/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ranmocy.rCaltrain;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -339,6 +336,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = rCaltrain/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ranmocy.rCaltrain;
 				PRODUCT_NAME = "$(TARGET_NAME)";
