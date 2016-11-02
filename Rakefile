@@ -19,22 +19,23 @@ task :download_data do
   require 'tempfile'
   require 'fileutils'
 
-  Dir.mktmpdir('gtfs_') { |tmp_dir|
-    url = 'http://www.caltrain.com/Assets/GTFS/caltrain/Caltrain-GTFS.zip'
+  url = 'http://www.caltrain.com/Assets/GTFS/caltrain/Caltrain-GTFS.zip'
+  target_dir = './gtfs/'
+
+  Dir.mktmpdir('gtfs_') { |data_dir|
     Tempfile.open('data.zip') do |temp_file|
-      system("curl #{url} -o #{temp_file.path} && unzip -o #{temp_file.path} -d #{tmp_dir}")
+      system("curl #{url} -o #{temp_file.path} && unzip -o #{temp_file.path} -d #{data_dir}")
       temp_file.unlink
     end
 
-    data_dir = File.join(tmp_dir, '2016APR_GTFS')
-    unless File.exist? data_dir
-      # Data structure changed, check data.
-      require 'pry'; binding.pry
-    end
-
-    target_dir = './gtfs/'
     FileUtils.remove_dir(target_dir)
-    FileUtils.mv(data_dir, target_dir)
+    FileUtils.cp_r(data_dir, target_dir)
+  }
+
+  # Cleanup \r to \n
+  Dir.glob("#{target_dir}/*.txt") { |file|
+    content = File.read(file).gsub("\r\n", "\n").gsub("\r", "\n")
+    File.write(file, content)
   }
 
   [:prepare_data, :update_appcache].each do |task|
