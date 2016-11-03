@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map>
+<key>CT-16APR-Caltrain-Weekday-01</key>
+<value>
+<array>
+<elem><array>
+<elem>20161124</elem><elem>2</elem>
+</array></elem>
+</array>
+</value><key>CT-16APR-Caltrain-Sunday-02</key>
+<value>
+<array>
+<elem><array>
+<elem>20161124</elem><elem>1</elem>
+</array></elem>
+</array>
+</value>
+</map>

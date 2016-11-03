@@ -18,8 +18,8 @@ class FromViewController: StationViewController {
         return "selectFromLocation"
     }
 
-    override func selectionCallback(controller: MainViewController, selectionText: String) {
-        controller.departureButton.setTitle(selectionText, forState: .Normal)
+    override func selectionCallback(_ controller: MainViewController, selectionText: String) {
+        controller.departureButton.setTitle(selectionText, for: UIControlState())
     }
 
 }

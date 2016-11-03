@@ -10,16 +10,16 @@ import Foundation
 
 class CalendarDates {
 
-    var exception_date : NSDate
+    var exception_date : Date
     var toAdd : Bool
 
-    init(date: NSDate, toAdd add: Bool) {
+    init(date: Date, toAdd add: Bool) {
         exception_date = date
         toAdd = add
     }
 
     convenience init(dateInt : Int, toAdd add: Bool) {
-        self.init(date: NSDate.parseDate(asYYYYMMDDInt: dateInt), toAdd: add)
+        self.init(date: Date.parseDate(asYYYYMMDDInt: dateInt), toAdd: add)
     }
 
 }

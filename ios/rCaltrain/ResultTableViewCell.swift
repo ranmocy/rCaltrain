@@ -14,7 +14,7 @@ class ResultTableViewCell: UITableViewCell {
     @IBOutlet var arrivalLabel: UILabel!
     @IBOutlet var durationLabel: UILabel!
 
-    func updateData(result: Result) {
+    func updateData(_ result: Result) {
         departureLabel.text = result.departureStr
         arrivalLabel.text = result.arrivalStr
         durationLabel.text = "\(result.durationInMin)min"

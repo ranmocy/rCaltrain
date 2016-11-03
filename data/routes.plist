@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>Bu-16APR</key>
@@ -6985,7 +6985,7 @@
 				</array>
 				<array>
 					<integer>70022</integer>
-					<integer>86700</integer>
+					<integer>86760</integer>
 				</array>
 				<array>
 					<integer>70032</integer>
@@ -9952,7 +9952,7 @@
 					<integer>17700</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>18000</integer>
 				</array>
 				<array>
@@ -10138,7 +10138,7 @@
 					<integer>19500</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>19800</integer>
 				</array>
 				<array>
@@ -10233,7 +10233,7 @@
 					<integer>32400</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>32700</integer>
 				</array>
 				<array>
@@ -10415,7 +10415,7 @@
 					<integer>36000</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>36300</integer>
 				</array>
 				<array>
@@ -10597,7 +10597,7 @@
 					<integer>39600</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>39900</integer>
 				</array>
 				<array>
@@ -10779,7 +10779,7 @@
 					<integer>43200</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>43500</integer>
 				</array>
 				<array>
@@ -10961,7 +10961,7 @@
 					<integer>46800</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>47100</integer>
 				</array>
 				<array>
@@ -11143,7 +11143,7 @@
 					<integer>50400</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>50700</integer>
 				</array>
 				<array>
@@ -11325,7 +11325,7 @@
 					<integer>54000</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>54300</integer>
 				</array>
 				<array>
@@ -11539,7 +11539,7 @@
 					<integer>70380</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>70680</integer>
 				</array>
 				<array>
@@ -11721,7 +11721,7 @@
 					<integer>74400</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>74700</integer>
 				</array>
 				<array>
@@ -11907,7 +11907,7 @@
 					<integer>78000</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>78300</integer>
 				</array>
 				<array>
@@ -12097,7 +12097,7 @@
 					<integer>81600</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>81900</integer>
 				</array>
 				<array>
@@ -12283,7 +12283,7 @@
 					<integer>86460</integer>
 				</array>
 				<array>
-					<integer>70021</integer>
+					<integer>70022</integer>
 					<integer>86760</integer>
 				</array>
 				<array>

@@ -1,5 +1,6 @@
 // Playground - noun: a place where people can play
 
+import Foundation
 import UIKit
 //
 //var d = NSDate()
@@ -23,8 +24,8 @@ import UIKit
 //arr
 //hash["1"]
 
-var components = NSCalendar.currentCalendar().components(.CalendarUnitYear | .CalendarUnitWeekOfYear | .CalendarUnitWeekday, fromDate: NSDate())
+var components = Calendar.current.dateComponents([.year, .weekday], from: Date())
 components.weekday = 1
-var date = NSCalendar.currentCalendar().dateFromComponents(components)!
+var date = Calendar.current.date(from: components)
 
-println((2...6))
+print((2...6), separator: "", terminator: "\n")

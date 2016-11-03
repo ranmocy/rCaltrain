@@ -11,7 +11,7 @@ import Foundation
 class Service {
 
     // Class variables/methods
-    private struct ServiceStruct {
+    fileprivate struct ServiceStruct {
         static var services = [Service]()
         static var idToServices = [String: [Service]]()
     }
@@ -24,44 +24,41 @@ class Service {
         return ServiceStruct.idToServices[id]
     }
 
+    class func addService(id: String, tripsDict : NSDictionary) -> Service {
+        var trips = [String: Trip]()
+        for (tripId, stopsArray) in tripsDict as! [String: NSArray] {
+            trips[tripId] = Trip(id: tripId, stopsArray: stopsArray)
+        }
+        let service = Service(id: id, trips: trips)
+        ServiceStruct.services.append(service)
+        if (ServiceStruct.idToServices[id] != nil) {
+            ServiceStruct.idToServices[id]!.append(service)
+        } else {
+            ServiceStruct.idToServices[id] = [service]
+        }
+        return service
+    }
+
+
     // Instance variables/methods
     let id : String
-    var trips = [String: Trip]()
+    let trips : [String: Trip]
     var calendar : Calendar!
     var calendar_dates = [CalendarDates]()
 
-    init (id: String) {
+    fileprivate init (id: String, trips: [String: Trip]) {
         self.id = id
-        ServiceStruct.services.append(self)
-
-        if (ServiceStruct.idToServices[id] != nil) {
-            ServiceStruct.idToServices[id]!.append(self)
-        } else {
-            ServiceStruct.idToServices[id] = [self]
-        }
-    }
-
-    convenience init (id: String, tripsDict : NSDictionary) {
-        self.init(id: id)
-        
-        for (tripId, stopsArray) in tripsDict as! [String: NSArray] {
-            self.addTrip(Trip(id: tripId, stopsArray: stopsArray))
-        }
-    }
-
-    func addTrip(trip: Trip) -> Service {
-        self.trips[trip.id] = trip
-        return self
+        self.trips = trips
     }
 
     func isValid(atWeekday day: Int) -> Bool {
-        let date = NSDate()
+        let date = Date()
         return (calendar.start_date <= date) && (date <= calendar.end_date) && calendar.isValid(weekday: day)
     }
 
     func isValidAtToday() -> Bool {
-        let date = NSDate()
-        let day = Calendar.currentCalendar.components(.Weekday, fromDate: date).weekday
+        let date = Date()
+        let day = Calendar.currentCalendar.dateComponents([.weekday], from: date).weekday
 
         var exceptional_add = false
         var exceptional_remove = false
@@ -69,7 +66,7 @@ class Service {
         // Only Today will consider holiday
         // (inCalendar && not inDates2) || inDates1
         for eDate in calendar_dates {
-            if (date.compare(eDate.exception_date) == .OrderedSame) {
+            if (date.compare(eDate.exception_date as Date) == .orderedSame) {
                 if (eDate.toAdd) {
                     exceptional_add = true
                 } else {
@@ -78,7 +75,7 @@ class Service {
             }
         }
 
-        return (isValid(atWeekday: day) && !exceptional_remove) || exceptional_add
+        return (isValid(atWeekday: day!) && !exceptional_remove) || exceptional_add
     }
 
     func isValidAtWeekday() -> Bool {
@@ -99,7 +96,7 @@ class Service {
         return isValid(atWeekday: 1)
     }
 
-    func isValidAt(withCategory: String) -> Bool {
+    func isValidAt(_ withCategory: String) -> Bool {
         switch withCategory {
         case "Now":
             return isValidAtToday()

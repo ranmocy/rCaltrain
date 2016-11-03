@@ -19,12 +19,12 @@ class StationViewController: UITableViewController, UISearchResultsUpdating {
 
 
     // Table View
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if self.resultSearchController.active {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if self.resultSearchController.isActive {
             return filteredNames.count
         } else {
             return stationNames.count
@@ -35,22 +35,22 @@ class StationViewController: UITableViewController, UISearchResultsUpdating {
         fatalError("reusable cell name need to be specified by subclass!")
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(self.reusableCellName(), forIndexPath: indexPath) as UITableViewCell
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: self.reusableCellName(), for: indexPath) as UITableViewCell
         var stations: [String]
-        if self.resultSearchController.active {
+        if self.resultSearchController.isActive {
             stations = filteredNames
         } else {
             stations = stationNames
         }
-        cell.textLabel?.text = stations[indexPath.row]
+        cell.textLabel?.text = stations[(indexPath as NSIndexPath).row]
 
         return cell
     }
 
 
     // Search View
-    func updateSearchResultsForSearchController(searchController: UISearchController) {
+    func updateSearchResults(for searchController: UISearchController) {
         filterStations(searchController.searchBar.text!)
         self.tableView.reloadData()
     }
@@ -59,30 +59,30 @@ class StationViewController: UITableViewController, UISearchResultsUpdating {
         fatalError("selectionIdentifier should be specified by subclass!")
     }
 
-    func selectionCallback(controller: MainViewController, selectionText: String) {
+    func selectionCallback(_ controller: MainViewController, selectionText: String) {
     }
 
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let id = segue.identifier {
             switch (id) {
             case selectionIdentifier():
-                let destViewController = segue.destinationViewController as! MainViewController
+                let destViewController = segue.destination as! MainViewController
                 var name: String
                 var table: [String]
 
-                if (self.resultSearchController.active) {
+                if (self.resultSearchController.isActive) {
                     table = filteredNames
                 } else {
                     table = stationNames
                 }
 
-                if let row = self.tableView.indexPathForSelectedRow?.row {
+                if let row = (self.tableView.indexPathForSelectedRow as NSIndexPath?)?.row {
                     name = table[row]
                 } else {
                     fatalError("unexpected: no row is selected in \(selectionIdentifier())")
                 }
 
-                self.resultSearchController.active = false
+                self.resultSearchController.isActive = false
 
                 selectionCallback(destViewController, selectionText: name)
             default:
@@ -113,11 +113,14 @@ class StationViewController: UITableViewController, UISearchResultsUpdating {
 
     // private helper
 
-    func filterStations(searchText: String) {
+    func filterStations(_ searchText: String) {
         if (searchText == "") {
             filteredNames = stationNames
         } else {
-            filteredNames = stationNames.filter() { /searchText/"i" =~ $0 }
+            let regexp = try! NSRegularExpression(pattern: searchText, options: .caseInsensitive)
+            filteredNames = stationNames.filter() {
+                regexp.numberOfMatches(in: $0, options: [], range: NSMakeRange(0, $0.length)) > 0
+            }
         }
     }
 

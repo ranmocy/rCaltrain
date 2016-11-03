@@ -1,18 +1,17 @@
 CACHE MANIFEST
-# Updated at 2016-04-17 20:27:19 -0700
+# Updated at 2016-11-02 17:48:01 -0700
 
 CACHE:
 data/calendar.json
 data/calendar_dates.json
 data/routes.json
 data/stops.json
+icons/icon-57.png
+icons/icon-57@2x.png
 icons/icon-72.png
 icons/icon-72@2x.png
 icons/icon-76.png
 icons/icon-76@2x.png
-icons/icon-origin.png
-icons/icon.png
-icons/icon@2x.png
 images/switcher.png
 index.html
 javascripts/default.js

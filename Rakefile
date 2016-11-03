@@ -19,24 +19,24 @@ task :download_data do
   require 'tempfile'
   require 'fileutils'
 
-  Dir.mktmpdir('gtfs_') { |tmp_dir|
-    url = 'http://www.caltrain.com/Assets/GTFS/caltrain/Caltrain-GTFS.zip'
+  url = 'http://www.caltrain.com/Assets/GTFS/caltrain/Caltrain-GTFS.zip'
+  target_dir = './gtfs/'
+
+  Dir.mktmpdir('gtfs_') { |data_dir|
     Tempfile.open('data.zip') do |temp_file|
-      system("curl #{url} -o #{temp_file.path} && unzip -o #{temp_file.path} -d #{tmp_dir}")
+      system("curl #{url} -o #{temp_file.path} && unzip -o #{temp_file.path} -d #{data_dir}")
       temp_file.unlink
     end
 
-    data_dir = File.join(tmp_dir, '2016APR_GTFS')
-    unless File.exist? data_dir
-      # Data structure changed, check data.
-      require 'pry'; binding.pry
-    end
-
-    target_dir = './gtfs/'
     FileUtils.remove_dir(target_dir)
-    FileUtils.mv(data_dir, target_dir)
+    FileUtils.cp_r(data_dir, target_dir)
   }
 
+  # Cleanup \r to \n
+  Dir.glob("#{target_dir}/*.txt") { |file|
+    content = File.read(file).gsub("\r\n", "\n").gsub("\r", "\n")
+    File.write(file, content)
+  }
 
   [:prepare_data, :update_appcache].each do |task|
     Rake::Task[task].invoke
@@ -77,6 +77,30 @@ task :prepare_data do
       }
   end
 
+  def elem_to_xml(elem)
+    case elem
+    when Hash
+      hash_to_xml(elem)
+    when Array
+      arr_to_xml(elem)
+    else
+      elem.to_s
+    end
+  end
+  def arr_to_xml(arr)
+    xml = arr.inject("") { |s, elem|
+      s + %Q{<elem>#{elem_to_xml(elem)}</elem>}
+    }
+    "<array>\n#{xml}\n</array>"
+  end
+  # Transform hash into XML compatible array
+  def hash_to_xml(hash)
+    xml = hash.inject("") { |s, (k, v)|
+      s + "<key>#{k}</key>\n<value>\n#{elem_to_xml(v)}\n</value>"
+    }
+    "<map>\n#{xml}\n</map>"
+  end
+
   # Read from CSV, prepare it with `block`, write what returns to JSON and PLIST files
   # If multiply names, expected to return a hash as NAME => CONTENT
   def prepare_for(*names, &block)
@@ -85,10 +109,11 @@ task :prepare_data do
 
     csvs = names.map { |name| read_CSV(name) }
     hashes = yield(*csvs)
-    hashes = { names[0] => hashes } if names.size == 1 # if only one name, make result as a hash
+    raise "prepare_for result has to be a Hash!" unless hashes.is_a? Hash
     hashes.each { |name, hash|
       File.write("data/#{name}.json", hash.to_json)
       File.write("data/#{name}.plist", Plist::Emit.dump(hash))
+      File.write("data/#{name}.xml", %Q{<?xml version="1.0" encoding="UTF-8"?>\n#{hash_to_xml(hash)}\n})
     }
   end
 
@@ -201,7 +226,7 @@ task :prepare_data do
   #   stop_name => [stop_id1, stop_id2]
   #   "San Francisco" => [70021, 70022]
   prepare_for("stops") do |stops|
-    stops
+    stops = stops
       .each { |item|
         # check data (if its scheme is changed)
         if item.stop_name !~ / Caltrain/
@@ -218,6 +243,8 @@ task :prepare_data do
       .map { |name, items| # customized Hash#map
         items.map(&:stop_id).sort
       }
+
+    {stops: stops}
   end
 
   # From:

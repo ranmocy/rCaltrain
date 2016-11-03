@@ -12,13 +12,13 @@ class ResultTableView:UITableView, UITableViewDataSource {
 
     var results:[Result] = []
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if let resultCell = tableView.dequeueReusableCellWithIdentifier("resultCell") as? ResultTableViewCell {
-            resultCell.updateData(results[indexPath.row])
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let resultCell = tableView.dequeueReusableCell(withIdentifier: "resultCell") as? ResultTableViewCell {
+            resultCell.updateData(results[(indexPath as NSIndexPath).row])
             return resultCell
         } else {
             fatalError("No resultCell in ResultTableView!")
