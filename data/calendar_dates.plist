@@ -5,36 +5,12 @@
 	<key>CT-16APR-Caltrain-Sunday-02</key>
 	<array>
 		<array>
-			<integer>20160530</integer>
-			<integer>1</integer>
-		</array>
-		<array>
-			<integer>20160704</integer>
-			<integer>1</integer>
-		</array>
-		<array>
-			<integer>20160905</integer>
-			<integer>1</integer>
-		</array>
-		<array>
 			<integer>20161124</integer>
 			<integer>1</integer>
 		</array>
 	</array>
 	<key>CT-16APR-Caltrain-Weekday-01</key>
 	<array>
-		<array>
-			<integer>20160530</integer>
-			<integer>2</integer>
-		</array>
-		<array>
-			<integer>20160704</integer>
-			<integer>2</integer>
-		</array>
-		<array>
-			<integer>20160905</integer>
-			<integer>2</integer>
-		</array>
 		<array>
 			<integer>20161124</integer>
 			<integer>2</integer>
