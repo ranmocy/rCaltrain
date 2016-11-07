@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.ranmocy.rcaltrain.R;
+import me.ranmocy.rcaltrain.Scheduler;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 import me.ranmocy.rcaltrain.models.ScheduleType;
@@ -27,8 +28,6 @@ import me.ranmocy.rcaltrain.models.Trip;
  */
 public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
 
-    private static final String TAG = "ResultsListAdapter";
-
     private final LayoutInflater layoutInflater;
     private final List<ScheduleResult> resultList = new ArrayList<>();
 
@@ -37,39 +36,8 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
     }
 
     public void setData(String fromName, String toName, ScheduleType scheduleType) {
-        Log.i(TAG, String.format("from:%s, to:%s, type:%s", fromName, toName, scheduleType));
-
         resultList.clear();
-
-        // check service time
-        List<Trip> possibleTrips = new ArrayList<>();
-        for (Service service : Service.getAllValidServices(scheduleType)) {
-            possibleTrips.addAll(service.getTrips());
-        }
-
-        // check station
-        Station departureStation = Station.getStation(fromName);
-        Station arrivalStation = Station.getStation(toName);
-        for (Trip trip : possibleTrips) {
-            List<Station> stationList = trip.getStationList();
-            int departureIndex = stationList.indexOf(departureStation);
-            int arrivalIndex = stationList.indexOf(arrivalStation);
-
-            if (departureIndex >= 0 && arrivalIndex >= 0 && departureIndex < arrivalIndex) {
-                List<Trip.Stop> stopList = trip.getStopList();
-                DayTime departureTime = stopList.get(departureIndex).getTime();
-                DayTime arrivalTime = stopList.get(arrivalIndex).getTime();
-
-                // check current time
-                if (scheduleType == ScheduleType.NOW && DayTime.now().after(departureTime)) {
-                    continue;
-                }
-                resultList.add(new ScheduleResult(departureTime, arrivalTime));
-            }
-        }
-
-        Collections.sort(resultList);
-
+        resultList.addAll(Scheduler.schedule(fromName, toName, scheduleType));
         notifyDataSetChanged();
     }
 
