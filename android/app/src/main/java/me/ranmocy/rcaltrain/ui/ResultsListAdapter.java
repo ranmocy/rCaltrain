@@ -1,7 +1,6 @@
 package me.ranmocy.rcaltrain.ui;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +16,7 @@ import java.util.Locale;
 
 import me.ranmocy.rcaltrain.R;
 import me.ranmocy.rcaltrain.models.DayTime;
+import me.ranmocy.rcaltrain.models.ScheduleResult;
 import me.ranmocy.rcaltrain.models.ScheduleType;
 import me.ranmocy.rcaltrain.models.Service;
 import me.ranmocy.rcaltrain.models.Station;
@@ -30,7 +30,7 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
     private static final String TAG = "ResultsListAdapter";
 
     private final LayoutInflater layoutInflater;
-    private final List<Result> resultList = new ArrayList<>();
+    private final List<ScheduleResult> resultList = new ArrayList<>();
 
     public ResultsListAdapter(Context context) {
         this.layoutInflater = LayoutInflater.from(context);
@@ -64,7 +64,7 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
                 if (scheduleType == ScheduleType.NOW && DayTime.now().after(departureTime)) {
                     continue;
                 }
-                resultList.add(new Result(departureTime, arrivalTime));
+                resultList.add(new ScheduleResult(departureTime, arrivalTime));
             }
         }
 
@@ -77,7 +77,7 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
         if (resultList.isEmpty()) {
             return "Oops, no train for today!";
         }
-        long nextTrainInMinutes = DayTime.now().toInMinutes(resultList.get(0).departureTime);
+        long nextTrainInMinutes = DayTime.now().toInMinutes(resultList.get(0).getDepartureTime());
         return String.format(Locale.getDefault(), "Next train in %d min", nextTrainInMinutes);
     }
 
@@ -87,7 +87,7 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
     }
 
     @Override
-    public Result getItem(int position) {
+    public ScheduleResult getItem(int position) {
         return resultList.get(position);
     }
 
@@ -114,7 +114,7 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        Result result = getItem(position);
+        ScheduleResult result = getItem(position);
         holder.departureView.setText(result.getDepartureTimeString());
         holder.arrivalView.setText(result.getArrivalTimeString());
         holder.intervalView.setText(result.getIntervalTimeString());
@@ -137,32 +137,4 @@ public class ResultsListAdapter extends BaseAdapter implements ListAdapter {
         TextView intervalView;
     }
 
-    private static class Result implements Comparable<Result> {
-        private final DayTime departureTime;
-        private final DayTime arrivalTime;
-        private final long interval;
-
-        Result(DayTime departureTime, DayTime arrivalTime) {
-            this.departureTime = departureTime;
-            this.arrivalTime = arrivalTime;
-            this.interval = departureTime.toInMinutes(arrivalTime);
-        }
-
-        String getDepartureTimeString() {
-            return departureTime.toString();
-        }
-
-        String getArrivalTimeString() {
-            return arrivalTime.toString();
-        }
-
-        String getIntervalTimeString() {
-            return String.format(Locale.getDefault(), "%d min", interval);
-        }
-
-        @Override
-        public int compareTo(@NonNull Result another) {
-            return this.departureTime.compareTo(another.departureTime);
-        }
-    }
 }
