@@ -21,7 +21,7 @@ public class DayTime implements Comparable<DayTime> {
         this.minutesSinceMidnight = secondsSinceMidnight / 60;
     }
 
-    public DayTime(int hours, int minutes) {
+    private DayTime(int hours, int minutes) {
         this.minutesSinceMidnight = hours * 60 + minutes;
     }
 
@@ -33,7 +33,7 @@ public class DayTime implements Comparable<DayTime> {
     @Override
     public String toString() {
         return String.format(Locale.getDefault(), "%02d:%02d",
-                minutesSinceMidnight / 60 % 24, minutesSinceMidnight % 60 % 24);
+                minutesSinceMidnight / 60 % 24, minutesSinceMidnight % 60);
     }
 
     /**

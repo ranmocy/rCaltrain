@@ -2,17 +2,57 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CT-16APR-Caltrain-Sunday-02</key>
+	<key>CT-17APR-Caltrain-Sunday-01</key>
 	<array>
 		<array>
-			<integer>20161124</integer>
+			<integer>20170529</integer>
+			<integer>1</integer>
+		</array>
+		<array>
+			<integer>20170704</integer>
+			<integer>1</integer>
+		</array>
+		<array>
+			<integer>20170804</integer>
+			<integer>1</integer>
+		</array>
+		<array>
+			<integer>20171123</integer>
+			<integer>1</integer>
+		</array>
+		<array>
+			<integer>20171225</integer>
+			<integer>1</integer>
+		</array>
+		<array>
+			<integer>20180101</integer>
 			<integer>1</integer>
 		</array>
 	</array>
-	<key>CT-16APR-Caltrain-Weekday-01</key>
+	<key>CT-17APR-Combo-Weekday-01</key>
 	<array>
 		<array>
-			<integer>20161124</integer>
+			<integer>20170529</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170704</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170804</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20171123</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20171225</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20180101</integer>
 			<integer>2</integer>
 		</array>
 	</array>
