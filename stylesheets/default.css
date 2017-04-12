@@ -166,7 +166,9 @@ footer {
     color: grey;
     margin-top: 30px;
     margin-bottom: 5em;
+    font-size: 14px;
 }
 .copyright {
-    font-size: 50%;
+    font-size: 12px;
+    margin-top: 10px;
 }
