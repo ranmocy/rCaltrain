@@ -19,7 +19,7 @@ task :download_data do
   require 'tempfile'
   require 'fileutils'
 
-  url = 'http://www.caltrain.com/Assets/GTFS/caltrain/Caltrain-GTFS.zip'
+  url = 'http://www.caltrain.com/Assets/GTFS/caltrain/CT-GTFS.zip'
   target_dir = './gtfs/'
 
   Dir.mktmpdir('gtfs_') { |data_dir|

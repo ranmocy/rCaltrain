@@ -1,0 +1,9 @@
+route_id,direction_id,direction
+Lo-127,0,North
+Lo-127,1,South
+Bu-127,0,North
+Bu-127,1,South
+TaSj-127,0,North
+TaSj-127,1,South
+Li-127,0,North
+Li-127,1,South
