@@ -14,6 +14,67 @@ class File
   end
 end
 
+desc "Download test data"
+task :download_test_data do
+  require "nokogiri"
+  require "json"
+
+  def parse_time(str)
+    case str.gsub([160].pack('U*'), '').gsub([8211].pack('U*'), '').gsub([8212].pack('U*'), '').gsub(/[\+\*\-]/, '').strip
+    when ''
+      nil
+    when /\A\d?\d:\d\d\Z/
+      str
+    else
+      require 'pry'; binding.pry
+      throw "Unknown time:" + str
+    end
+  end
+
+  # html = `curl http://www.caltrain.com/schedules/weekdaytimetable.html`
+  html = File.read('weekday.html')
+
+  doc = Nokogiri::HTML(html)
+  ["NB_TT", "SB_TT"].each { |name|
+    schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
+      {
+        name: tr.at_xpath('th[2]/a/text()').to_s.strip,
+        stop_times: tr.xpath('td').collect {|td| parse_time(td.text) },
+      }
+    }
+    File.write("test/weekday-#{name}.json", schedule.to_json)
+  }
+
+  # html = `curl http://www.caltrain.com/schedules/weekend-timetable.html`
+  html = File.read('weekend.html')
+  doc = Nokogiri::HTML(html)
+  ["NB_TT", "SB_TT"].each { |name|
+    table = doc.xpath('//table[@class="' + name + '"]')
+    is_sat_col = table.xpath('thead/tr[1]/td').reduce([]) { |arr, td|
+      length = (td.attr('colspan') || 1).to_i
+      is_sat = td.attr('id') == 'saturday'
+      length.times { |i| arr.push(is_sat) }
+      arr
+    }
+
+    saturday = table.xpath('tbody/tr').collect { |tr|
+      {
+        name: tr.at_xpath('th[3]/a/text()').to_s.strip,
+        stop_times: tr.xpath('td').collect {|td| parse_time(td.text) },
+      }
+    }
+    File.write("test/saturday-#{name}.json", saturday.to_json)
+
+    sunday = saturday.map { |row|
+      {
+        name: row['name'],
+        stop_times: row['stop_times'],
+      }
+    }
+    File.write("test/sunday-#{name}.json", sunday.to_json)
+  }
+end
+
 desc "Download GTFS data"
 task :download_data do
   require 'tempfile'

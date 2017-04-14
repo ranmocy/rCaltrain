@@ -286,6 +286,11 @@
     load_cookies();
     bind_events();
     schedule(); // init schedule
+
+    // Trigger test
+    if (new URLSearchParams(window.location.search).get('test') === 'true') {
+      test();
+    }
   }
 
   function data_checker (names, callback) {
@@ -322,4 +327,14 @@
       checker(name);
     });
   });
+
+  // test
+  function test() {
+    console.debug('Start testing');
+    $.getJSON("test/weekdaytimetable.json", function(json) {
+      console.log(from, to, when);
+      debugger
+    });
+    console.debug('Finish testing');
+  }
 }());
