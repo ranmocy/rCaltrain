@@ -65,7 +65,7 @@
   function second2str (seconds) {
     var minutes = Math.floor(seconds / 60);
     return [
-      Math.floor(minutes / 60),
+      Math.floor(minutes / 60) % 24,
       minutes % 60
     ].map(function(item) {
       return item.toString().rjust(2, '0');
