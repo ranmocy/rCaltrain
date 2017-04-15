@@ -354,8 +354,7 @@
           return t.map(function(item) { return item.toString().rjust(2, '0'); }).join(":");
         }
 
-        when[1].click(); // Weekday
-        [test_data.weekday_NB_TT, test_data.weekday_SB_TT].forEach(function(test_datum) {
+        function runTest(test_datum, includeSat) {
           for (var i = test_datum.length - 1; i >= 0; i--) {
             var to_name = test_datum[i].name;
             var to_stops = test_datum[i].stop_times;
@@ -380,6 +379,11 @@
                                from_name + "(" + from_stop.service_type + ")=>" +
                                to_name + "(" + to_stop.service_type + ")" +
                                "@" + from_stop.time + ":" + to_stop.time)) {
+
+                    var service_type = from_stop.service_type;
+                    if (service_type === 'SatOnly' && !includeSat) {
+                      continue;
+                    }
                     if (from_stop.time && to_stop.time) {
                       // since the loop is reversed, insert to first position
                       expected.unshift([from_stop.time, to_stop.time]);
@@ -412,7 +416,19 @@
               }
             }
           }
-        });
+        }
+
+        when[1].click(); // Weekday
+        runTest(test_data.weekday_NB_TT);
+        runTest(test_data.weekday_SB_TT);
+
+        when[2].click(); // Saturday
+        runTest(test_data.weekend_NB_TT, true);
+        runTest(test_data.weekend_SB_TT, true);
+
+        when[3].click(); // Sunday
+        runTest(test_data.weekend_NB_TT, false);
+        runTest(test_data.weekend_SB_TT, false);
 
         var $total = document.createElement('div');
         $total.textContent = "Total failed:" + $test_result.children.length;
