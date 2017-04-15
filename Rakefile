@@ -91,11 +91,11 @@ task :download_test_data do
         nil
       when /\A\d?\d:\d\d\Z/
         t = str.split(':').map(&:to_i)
-        is_pm = isPm(style, node)
-        if is_pm and (t[0] != 12)
-          t[0] += 12
-        elsif !is_pm and (t[0] == 12)
-          t[0] -= 12
+        if isPm(style, node)
+          t[0] += 12 if t[0] != 12 # 1pm to 13
+        else
+          t[0] += 12 if t[0] == 12 # 12am to 24
+          t[0] += 24 if t[0] < 3   # 1am to 25, assume no train start before 3
         end
         t.map { |i| i.to_s.rjust(2, '0') }.join(':')
       else

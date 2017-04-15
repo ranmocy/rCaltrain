@@ -348,6 +348,12 @@
           return check;
         }
 
+        function fixTimeFormat(time_str) {
+          var t = time_str.split(":");
+          t[0] = t[0] % 24;
+          return t.map(function(item) { return item.toString().rjust(2, '0'); }).join(":");
+        }
+
         when[1].click(); // Weekday
         [test_data.weekday_NB_TT, test_data.weekday_SB_TT].forEach(function(test_datum) {
           for (var i = test_datum.length - 1; i >= 0; i--) {
@@ -397,8 +403,8 @@
               for (var l = results.length - 1; l >= 0; l--) {
                 var from_text = results[l].children[0].textContent;
                 var to_text = results[l].children[2].textContent;
-                var expected_from_text = expected[l][0];
-                var expected_to_text = expected[l][1];
+                var expected_from_text = fixTimeFormat(expected[l][0]);
+                var expected_to_text = fixTimeFormat(expected[l][1]);
                 assert(from_text === expected_from_text && to_text === expected_to_text,
                        "time mismatch: " + from_name + "=>" + to_name +
                          ", expected:(" + expected_from_text + " => " + expected_to_text +
