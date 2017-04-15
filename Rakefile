@@ -91,11 +91,13 @@ task :download_test_data do
         nil
       when /\A\d?\d:\d\d\Z/
         t = str.split(':').map(&:to_i)
-        if isPm(style, node)
-          t[0] += 12 if t[0] != 12 # 1pm to 13
-        else
+        if !isPm(style, node) or ((t[0] == 12 or t[0] < 3) and getServiceType(style, node) == 'SatOnly')
+          # AM. for weekend SatOnly data, some are actually am
           t[0] += 12 if t[0] == 12 # 12am to 24
           t[0] += 24 if t[0] < 3   # 1am to 25, assume no train start before 3
+        else
+          # PM
+          t[0] += 12 if t[0] != 12 # 1pm to 13
         end
         t.map { |i| i.to_s.rjust(2, '0') }.join(':')
       else
