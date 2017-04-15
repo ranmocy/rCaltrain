@@ -39,6 +39,7 @@ task :download_test_data do
   var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
   return {
     backgroundColor: temp_style.backgroundColor,
+    fontStyle: temp_style.fontStyle,
     fontWeight: temp_style.fontWeight,
   }
 })()")
@@ -62,15 +63,15 @@ task :download_test_data do
     end
 
     def isPm(style, node)
-      weight = style['fontWeight']
-      case weight
-      when 'bold'
-        true
-      when 'normal'
+      style = style['fontStyle']
+      case style
+      when 'italic'
         false
+      when 'normal'
+        true
       else
         require 'pry'; binding.pry
-        throw 'Unknown font weight:' + weight
+        throw 'Unknown font style:' + style
       end
     end
 
@@ -109,6 +110,9 @@ task :download_test_data do
           {
             name: getName(tr.at_xpath('th[2]/a')),
             stop_times: tr.xpath('td').collect { |td|
+              while !td.children.empty? and !td.children[0].text?
+                td = td.children[0]
+              end
               style = getStyle(td)
               {
                 service_type: getServiceType(style, td),
@@ -137,6 +141,9 @@ task :download_test_data do
           {
             name: getName(name_node),
             stop_times: tr.xpath('td').collect { |td|
+              while !td.children.empty? and !td.children[0].text?
+                td = td.children[0]
+              end
               style = getStyle(td)
               {
                 service_type: getServiceType(style, td),
