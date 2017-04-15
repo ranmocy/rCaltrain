@@ -354,19 +354,22 @@
           return t.map(function(item) { return item.toString().rjust(2, '0'); }).join(":");
         }
 
-        function runTest(test_datum, includeSat) {
+        function runTest(test_datum, schedule_type) {
           for (var i = test_datum.length - 1; i >= 0; i--) {
             var to_name = test_datum[i].name;
             var to_stops = test_datum[i].stop_times;
+            if (!assert(to.getOptions().indexOf(to_name) >= 0, "to_name is not in options:" + to_name)) {
+              continue;
+            }
+            to.setText(to_name);
 
             for (var j = i - 1; j >= 0; j--) {
               var from_name = test_datum[j].name;
               var from_stops = test_datum[j].stop_times;
-
-              assert(from.getOptions().indexOf(from_name) >= 0, "from_name is not in options:" + from_name);
+              if (!assert(from.getOptions().indexOf(from_name) >= 0, "from_name is not in options:" + from_name)) {
+                continue;
+              }
               from.setText(from_name);
-              assert(to.getOptions().indexOf(to_name) >= 0, "to_name is not in options:" + to_name);
-              to.setText(to_name);
 
               var expected = [];
               if (assert(from_stops.length === to_stops.length,
@@ -376,12 +379,13 @@
                   var to_stop = to_stops[k];
                   if (assert(from_stop.service_type === to_stop.service_type,
                              "from_stop and to_stop have different type:" +
+                               "schedule:" + schedule_type + ", " +
                                from_name + "(" + from_stop.service_type + ")=>" +
                                to_name + "(" + to_stop.service_type + ")" +
                                "@" + from_stop.time + ":" + to_stop.time)) {
 
                     var service_type = from_stop.service_type;
-                    if (service_type === 'SatOnly' && !includeSat) {
+                    if (service_type === 'SatOnly' && schedule_type !== 'saturday') {
                       continue;
                     }
                     if (from_stop.time && to_stop.time) {
@@ -402,33 +406,37 @@
               });
 
               var results = $result.children;
-              assert(expected.length === results.length,
-                     "expected and results have different length:" + from_name + "=>" + to_name);
-              for (var l = results.length - 1; l >= 0; l--) {
-                var from_text = results[l].children[0].textContent;
-                var to_text = results[l].children[2].textContent;
-                var expected_from_text = fixTimeFormat(expected[l][0]);
-                var expected_to_text = fixTimeFormat(expected[l][1]);
-                assert(from_text === expected_from_text && to_text === expected_to_text,
-                       "time mismatch: " + from_name + "=>" + to_name +
-                         ", expected:(" + expected_from_text + " => " + expected_to_text +
-                         "), actual:(" + from_text + " => " + to_text + ")");
+              if (assert(expected.length === results.length,
+                     "expected and results have different length:" + from_name + "=>" + to_name)) {
+                for (var l = results.length - 1; l >= 0; l--) {
+                  var from_text = results[l].children[0].textContent;
+                  var to_text = results[l].children[2].textContent;
+                  var expected_from_text = fixTimeFormat(expected[l][0]);
+                  var expected_to_text = fixTimeFormat(expected[l][1]);
+                  assert(from_text === expected_from_text && to_text === expected_to_text,
+                         "time mismatch: schedule:" + schedule_type + ", " +
+                           from_name + "=>" + to_name +
+                           ", expected:(" + expected_from_text + " => " + expected_to_text +
+                           "), actual:(" + from_text + " => " + to_text + ")");
+                }
+              } else {
+                // debugger;
               }
             }
           }
         }
 
         when[1].click(); // Weekday
-        runTest(test_data.weekday_NB_TT);
-        runTest(test_data.weekday_SB_TT);
+        runTest(test_data.weekday_NB_TT, 'weekday');
+        runTest(test_data.weekday_SB_TT, 'weekday');
 
         when[2].click(); // Saturday
-        runTest(test_data.weekend_NB_TT, true);
-        runTest(test_data.weekend_SB_TT, true);
+        runTest(test_data.weekend_NB_TT, 'saturday');
+        runTest(test_data.weekend_SB_TT, 'saturday');
 
         when[3].click(); // Sunday
-        runTest(test_data.weekend_NB_TT, false);
-        runTest(test_data.weekend_SB_TT, false);
+        runTest(test_data.weekend_NB_TT, 'sunday');
+        runTest(test_data.weekend_SB_TT, 'sunday');
 
         var $total = document.createElement('div');
         $total.textContent = "Total failed:" + $test_result.children.length;
