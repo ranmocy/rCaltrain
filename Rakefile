@@ -14,6 +14,186 @@ class File
   end
 end
 
+desc "Download test data"
+task :download_test_data do
+  require 'capybara'
+  require 'capybara/dsl'
+  require 'capybara/poltergeist'
+  require 'json'
+  require 'nokogiri'
+
+  Capybara.default_driver = :poltergeist
+  Capybara.run_server = false
+
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, js_errors: false, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
+  end
+
+  class WebScraper
+    include Capybara::DSL
+
+    def getStyle(node)
+      # serialization is expensive, so we only return what we need
+      page.evaluate_script("\
+(function() {
+  var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
+  return {
+    backgroundColor: temp_style.backgroundColor,
+    color: temp_style.color,
+    fontWeight: temp_style.fontWeight,
+  }
+})()")
+    end
+
+    def getServiceType(style, node)
+      color = style['backgroundColor'].gsub(/[[:space:]]/, '')
+      case color
+      when 'rgb(240,178,161)' # light red
+        'Baby Bullet'
+      when 'rgb(247,232,157)' # yellow
+        'Limited'
+      when 'rgb(116,187,146)' # green for "Timed transfers for local service" only happends as limited
+        node_column_index = node.parent.children.index(node)
+        first_node_in_same_column = node.parent.parent.at_xpath('tr').children[node_column_index]
+        if node == first_node_in_same_column
+          require 'pry'; binding.pry
+          throw "Transfer can't be in the start station!"
+        end
+        getServiceType(getStyle(first_node_in_same_column), first_node_in_same_column)
+      when 'rgba(0,0,0,0)', 'rgb(255,255,255)' # white
+        'Local'
+      when 'rgb(0,0,0)' # black
+        'SatOnly'
+      else
+        require 'pry'; binding.pry
+        throw 'Unknown backgroundColor:' + color
+      end
+    end
+
+    def isPm(style, node)
+      case style['fontWeight']
+      when 'normal', nil
+        false
+      when 'bold'
+        true
+      else
+        require 'pry'; binding.pry
+        throw 'Unknown font style:' + style
+      end
+    end
+
+    def getTime(style, node)
+      str = node.text
+      [[160].pack('U*'), [8211].pack('U*'), [8212].pack('U*'), /[\+\*\-]/].each { |org| str.gsub!(org, '') }
+      case str
+      when ''
+        nil
+      when /\A\d?\d:\d\d\Z/
+        t = str.split(':').map(&:to_i)
+        if !isPm(style, node) or ((t[0] == 12 or t[0] < 3) and getServiceType(style, node) == 'SatOnly')
+          # AM. for weekend SatOnly data, some are actually am
+          t[0] += 12 if t[0] == 12 # 12am to 24
+          t[0] += 24 if t[0] < 3   # 1am to 25, assume no train start before 3
+        else
+          # PM
+          t[0] += 12 if t[0] != 12 # 1pm to 13
+        end
+        t.map { |i| i.to_s.rjust(2, '0') }.join(':')
+      else
+        require 'pry'; binding.pry
+        throw "Unknown time:" + str
+      end
+    end
+
+    def getName(node)
+      node.text.strip
+        .gsub(/[[:space:]]/, 32.chr) # unify all space chars
+        .gsub('22nd Street', '22nd St') # name mapping
+        .gsub('Mountain View', 'Mt View')
+        .gsub('SJ Diridon', 'San Jose Diridon')
+    end
+
+    def get()
+      [
+        {
+          type_name: 'weekday',
+          url: 'http://www.caltrain.com/schedules/weekdaytimetable.html',
+          name_xpath: 'th[2]',
+        },
+        {
+          type_name: 'weekend',
+          url: 'http://www.caltrain.com/schedules/weekend-timetable.html',
+          name_xpath: 'th[3]',
+        },
+      ].each { |item|
+        puts "Visiting #{item[:type_name]}..."
+        visit(item[:url])
+        doc = Nokogiri::HTML(page.html)
+        ["NB_TT", "SB_TT"].each { |direction|
+          puts "Getting #{item[:type_name]}-#{direction}..."
+          schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').map { |tr|
+            name_node = tr.at_xpath(item[:name_xpath])
+            next nil if getStyle(name_node)['color'].gsub(/[[:space:]]/, '') == 'rgb(0,128,0)' # shuttle bus
+            if name_node.children.size > 1
+              require 'pry'; binding.pry
+              throw "Unexpected cell"
+            end
+            name_node = name_node.children[0]
+            {
+              name: getName(name_node),
+              stop_times: tr.xpath('td').map { |td|
+                text_node = td
+                text_node = text_node.children[0] while !text_node.children.empty? and !text_node.children[0].text?
+                {
+                  service_type: getServiceType(getStyle(td), td),
+                  time: getTime(getStyle(text_node), text_node),
+                }
+              },
+            }
+          }.keep_if {|item| item != nil }
+          File.write("test/#{item[:type_name]}_#{direction}.json", schedule.to_json)
+        }
+      }
+    end
+  end
+
+  WebScraper.new.get()
+end
+
+# task default: :spec
+
+desc "Run test"
+task :default do
+  require 'capybara'
+  require 'capybara/dsl'
+  require 'capybara/poltergeist'
+  require 'rack'
+
+  Capybara.app = Rack::File.new File.dirname __FILE__
+
+  Capybara.default_driver = :poltergeist
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, timeout: 120, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
+  end
+
+  class Runner
+    include Capybara::DSL
+
+    def run
+      visit('/index.html?test=true')
+      result = find("#test_result").text
+      if result == 'Total failed:0'
+        true
+      else
+        $stderr.puts result
+        false
+      end
+    end
+  end
+
+  exit Runner.new.run ? 0 : 1
+end
+
 desc "Download GTFS data"
 task :download_data do
   require 'tempfile'
