@@ -160,6 +160,40 @@ task :download_test_data do
   WebScraper.new.get()
 end
 
+# task default: :spec
+
+desc "Run test"
+task :default do
+  require 'capybara'
+  require 'capybara/dsl'
+  require 'capybara/poltergeist'
+  require 'rack'
+
+  Capybara.app = Rack::File.new File.dirname __FILE__
+
+  Capybara.default_driver = :poltergeist
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, timeout: 120, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
+  end
+
+  class Runner
+    include Capybara::DSL
+
+    def run
+      visit('/index.html?test=true')
+      result = find("#test_result").text
+      if result == 'Total failed:0'
+        true
+      else
+        $stderr.puts result
+        false
+      end
+    end
+  end
+
+  exit Runner.new.run ? 0 : 1
+end
+
 desc "Download GTFS data"
 task :download_data do
   require 'tempfile'

@@ -61,6 +61,7 @@ DEPENDENCIES
   pry
   pry-byebug
   pry-stack_explorer
+  rack
   rake
 
 BUNDLED WITH

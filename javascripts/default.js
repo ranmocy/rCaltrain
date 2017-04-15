@@ -288,7 +288,7 @@
     schedule(); // init schedule
 
     // Trigger test
-    if (new URLSearchParams(window.location.search).get('test') === 'true') {
+    if (window.location.search === '?test=true') {
       test();
     }
   }
@@ -337,7 +337,7 @@
         console.debug('Start testing');
 
         var $test_result = document.createElement('div');
-        $test_result.id = 'text_result';
+        $test_result.id = 'test_result';
         document.documentElement.appendChild($test_result);
         function assert(check, msg) {
           if (!check) {
