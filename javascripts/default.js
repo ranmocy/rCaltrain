@@ -407,6 +407,10 @@
             }
           }
         });
+
+        var $total = document.createElement('div');
+        $total.textContent = "Total failed:" + $test_result.children.length;
+        $test_result.insertBefore($total, $test_result.firstChild);
         console.debug('Finish testing');
       });
     })(from, to, when, document.querySelector('#result'));
