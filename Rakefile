@@ -108,7 +108,7 @@ task :download_test_data do
             },
           }
         }
-        File.write("test/weekday-#{name}.json", schedule.to_json)
+        File.write("test/weekday_#{name}.json", schedule.to_json)
       }
 
       puts "Visiting weekend..."
@@ -129,7 +129,7 @@ task :download_test_data do
             },
           }
         }
-        File.write("test/weekend-#{name}.json", schedule.to_json)
+        File.write("test/weekend_#{name}.json", schedule.to_json)
       }
     end
   end

@@ -327,12 +327,15 @@
   // test
   function test() {
     console.debug('Fetching test data');
-    fetch_data(
-      ["weekday-NB_TT", "weekday-SB_TT", "weekend-NB_TT", "weekend-SB_TT"].map(function(name) { return "test/" + name + ".json"; }),
-      function(fetched_data) {
-        console.debug('Start testing');
+    fetch_data({
+      "weekday_NB_TT": "test/weekday_NB_TT.json",
+      "weekday_SB_TT": "test/weekday_SB_TT.json",
+      "weekend_NB_TT": "test/weekend_NB_TT.json",
+      "weekend_SB_TT": "test/weekend_SB_TT.json",
+    }, function(result) {
+      console.debug('Start testing');
 
-        console.debug('Finish testing');
-      });
+      console.debug('Finish testing');
+    });
   }
 }());
