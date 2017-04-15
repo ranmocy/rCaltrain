@@ -89,6 +89,10 @@ task :download_test_data do
       end
     end
 
+    def getName(node)
+      node.text.strip
+    end
+
     def get()
       puts "Visiting weekday..."
       # visit('weekday.html')
@@ -98,7 +102,7 @@ task :download_test_data do
         puts "Getting weekday-#{name}..."
         schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
           {
-            name: tr.at_xpath('th[2]/a/text()').to_s.strip,
+            name: getName(tr.at_xpath('th[2]/a')),
             stop_times: tr.xpath('td').collect { |td|
               style = getStyle(td)
               {
@@ -118,8 +122,16 @@ task :download_test_data do
       ["NB_TT", "SB_TT"].each { |name|
         puts "Getting weekend-#{name}..."
         schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
+          name_node = tr.at_xpath('th[3]/a')
+          if name_node == nil
+            if tr.at_xpath('th[3]').text == 'Shuttle Bus'
+              return nil
+            end
+            require 'pry'; binding.pry
+            throw "Unexpected name"
+          end
           {
-            name: tr.at_xpath('th[3]/a/text()').to_s.strip,
+            name: getName(name_node),
             stop_times: tr.xpath('td').collect { |td|
               style = getStyle(td)
               {
