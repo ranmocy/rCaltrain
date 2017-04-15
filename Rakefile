@@ -95,7 +95,7 @@ task :download_test_data do
     end
 
     def getName(node)
-      node.text.strip
+      node.text.strip.gsub('22nd Street', '22nd St').gsub('Mountain View', 'Mt View')
     end
 
     def get()
