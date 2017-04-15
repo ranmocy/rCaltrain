@@ -293,48 +293,46 @@
     }
   }
 
-  function data_checker (names, callback) {
-    var mark = {};
-    names.forEach(function(name) {
-      mark[name] = false;
+  function fetch_data(name_to_path, callback) {
+    var data = {};
+    Object.keys(name_to_path).forEach(function(name) { data[name] = undefined; });
+    Object.keys(name_to_path).forEach(function(name) {
+      $.getJSON(name_to_path[name], function(json) {
+        data[name] = json;
+        for (var p in data) {
+          if (typeof(data[p]) === 'undefined') {
+            // not all finished, ignore
+            return;
+          }
+        }
+        callback(data);
+      });
     });
 
-    return function(name) {
-      mark[name] = true;
-
-      var all_true = true;
-      for (var n in mark)
-        if (!mark[n]) {
-          all_true = false;
-          break;
-        }
-
-      if (all_true)
-        callback();
-    };
   }
 
   // init after document and data are ready
-  var data_names = ["calendar", "calendar_dates", "stops", "routes"];
-  var checker = data_checker(data_names, function() {
+  fetch_data({
+    "calendar": "data/calendar.json",
+    "calendar_dates": "data/calendar_dates.json",
+    "stops": "data/stops.json",
+    "routes": "data/routes.json",
+  },
+  function(result) {
+    data = result;
     $(initialize);
   });
 
-  // download data
-  data_names.forEach(function(name) {
-    $.getJSON("data/" + name + ".json", function(json) {
-      data[name] = json;
-      checker(name);
-    });
-  });
 
   // test
   function test() {
-    console.debug('Start testing');
-    $.getJSON("test/weekdaytimetable.json", function(json) {
-      console.log(from, to, when);
-      debugger
-    });
-    console.debug('Finish testing');
+    console.debug('Fetching test data');
+    fetch_data(
+      ["weekday-NB_TT", "weekday-SB_TT", "weekend-NB_TT", "weekend-SB_TT"].map(function(name) { return "test/" + name + ".json"; }),
+      function(fetched_data) {
+        console.debug('Start testing');
+
+        console.debug('Finish testing');
+      });
   }
 }());
