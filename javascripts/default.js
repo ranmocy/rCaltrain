@@ -341,9 +341,14 @@
         document.documentElement.appendChild($test_result);
         function assert(check, msg) {
           if (!check) {
-            var $t = document.createElement('div');
-            $t.textContent = msg;
-            $test_result.appendChild($t);
+            var $item = document.createElement('div');
+            $item.className = "test_result_item";
+            msg.split("\n").forEach(function(line) {
+              var $line = document.createElement('div');
+              $line.textContent = line;
+              $item.appendChild($line);
+            });
+            $test_result.appendChild($item);
           }
           return check;
         }
@@ -352,6 +357,14 @@
           var t = time_str.split(":");
           t[0] = t[0] % 24;
           return t.map(function(item) { return item.toString().rjust(2, '0'); }).join(":");
+        }
+
+        function formatExpectTime(expect) {
+          return "[" + fixTimeFormat(expect[0]) + "=>" + fixTimeFormat(expect[1]) + "]";
+        }
+
+        function formatActualTime(actual) {
+          return "[" + actual[0] + "=>" + actual[1] + "]";
         }
 
         function runTest(test_datum, schedule_type) {
@@ -371,7 +384,7 @@
               }
               from.setText(from_name);
 
-              var expected = [];
+              var expects = [];
               if (assert(from_stops.length === to_stops.length,
                          "from_stops and to_stops have different length:" + from_name + "=>" + to_name)) {
                 for (var k = from_stops.length - 1; k >= 0; k--) {
@@ -390,14 +403,14 @@
                     }
                     if (from_stop.time && to_stop.time) {
                       // since the loop is reversed, insert to first position
-                      expected.unshift([from_stop.time, to_stop.time]);
+                      expects.unshift([from_stop.time, to_stop.time]);
                     }
                   }
                 }
               }
 
               // sort by "depature_time=>arrival_time"
-              expected.sort(function(a, b) {
+              expects.sort(function(a, b) {
                 a = a[0] + "=>" + a[1];
                 b = b[0] + "=>" + b[1];
                 if (a < b) { return -1; }
@@ -405,22 +418,26 @@
                 return 0;
               });
 
-              var results = $result.children;
-              if (assert(expected.length === results.length,
-                     "expected and results have different length:" + from_name + "=>" + to_name)) {
-                for (var l = results.length - 1; l >= 0; l--) {
-                  var from_text = results[l].children[0].textContent;
-                  var to_text = results[l].children[2].textContent;
-                  var expected_from_text = fixTimeFormat(expected[l][0]);
-                  var expected_to_text = fixTimeFormat(expected[l][1]);
-                  assert(from_text === expected_from_text && to_text === expected_to_text,
+              var actuals = [];
+              for (var l = $result.children.length - 1; l >= 0; l--) {
+                var result = $result.children[l];
+                actuals.unshift([result.children[0].textContent, result.children[2].textContent]);
+              }
+
+              if (assert(expects.length === actuals.length,
+                     "expects and actuals have different length:" + from_name + "=>" + to_name +
+                     "\nexpects:" + expects.map(formatExpectTime).join(", ") +
+                     "\nactuals:" + actuals.map(formatActualTime).join(", "))) {
+
+                for (var m = actuals.length - 1; m >= 0; m--) {
+                  var expect_from_text = fixTimeFormat(expects[m][0]);
+                  var expect_to_text = fixTimeFormat(expects[m][1]);
+                  assert(actuals[m][0] === expect_from_text && actuals[m][1] === expect_to_text,
                          "time mismatch: schedule:" + schedule_type + ", " +
                            from_name + "=>" + to_name +
-                           ", expected:(" + expected_from_text + " => " + expected_to_text +
-                           "), actual:(" + from_text + " => " + to_text + ")");
+                           ", expected:(" + expect_from_text + " => " + expect_to_text +
+                           "), actual:(" + actuals[m][0] + " => " + actuals[m][1] + ")");
                 }
-              } else {
-                // debugger;
               }
             }
           }
