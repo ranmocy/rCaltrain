@@ -39,8 +39,8 @@ task :download_test_data do
   var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
   return {
     backgroundColor: temp_style.backgroundColor,
+    color: temp_style.color,
     fontStyle: temp_style.fontStyle,
-    fontWeight: temp_style.fontWeight,
   }
 })()")
     end
@@ -119,12 +119,12 @@ task :download_test_data do
         {
           type_name: 'weekday',
           url: 'http://www.caltrain.com/schedules/weekdaytimetable.html',
-          name_xpath: 'th[2]/a',
+          name_xpath: 'th[2]',
         },
         {
           type_name: 'weekend',
           url: 'http://www.caltrain.com/schedules/weekend-timetable.html',
-          name_xpath: 'th[3]/a',
+          name_xpath: 'th[3]',
         },
       ].each { |item|
         puts "Visiting #{item[:type_name]}..."
@@ -134,14 +134,12 @@ task :download_test_data do
           puts "Getting #{item[:type_name]}-#{direction}..."
           schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').map { |tr|
             name_node = tr.at_xpath(item[:name_xpath])
-            if name_node == nil
-              if tr.at_xpath('th[3]').text == 'Shuttle Bus'
-                puts 'skip shuttle bus'
-                next nil
-              end
+            next nil if getStyle(name_node)['color'].gsub(/[[:space:]]/, '') == 'rgb(0,128,0)' # shuttle bus
+            if name_node.children.size > 1
               require 'pry'; binding.pry
-              throw "Unexpected name"
+              throw "Unexpected cell"
             end
+            name_node = name_node.children[0]
             {
               name: getName(name_node),
               stop_times: tr.xpath('td').map { |td|
