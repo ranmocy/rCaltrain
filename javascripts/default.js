@@ -391,11 +391,11 @@
                   var from_stop = from_stops[k];
                   var to_stop = to_stops[k];
                   if (assert(from_stop.service_type === to_stop.service_type,
-                             "from_stop and to_stop have different type:" +
+                             "from_stop and to_stop have different type: " +
                                "schedule:" + schedule_type + ", " +
                                from_name + "(" + from_stop.service_type + ")=>" +
                                to_name + "(" + to_stop.service_type + ")" +
-                               "@" + from_stop.time + ":" + to_stop.time)) {
+                               "[" + from_stop.time + "=>" + to_stop.time + "]")) {
 
                     var service_type = from_stop.service_type;
                     if (service_type === 'SatOnly' && schedule_type !== 'saturday') {

@@ -40,7 +40,7 @@ task :download_test_data do
   return {
     backgroundColor: temp_style.backgroundColor,
     color: temp_style.color,
-    fontStyle: temp_style.fontStyle,
+    fontWeight: temp_style.fontWeight,
   }
 })()")
     end
@@ -71,11 +71,10 @@ task :download_test_data do
     end
 
     def isPm(style, node)
-      style = style['fontStyle']
-      case style
-      when 'italic'
+      case style['fontWeight']
+      when 'normal', nil
         false
-      when 'normal'
+      when 'bold'
         true
       else
         require 'pry'; binding.pry
@@ -143,13 +142,11 @@ task :download_test_data do
             {
               name: getName(name_node),
               stop_times: tr.xpath('td').map { |td|
-                while !td.children.empty? and !td.children[0].text?
-                  td = td.children[0]
-                end
-                style = getStyle(td)
+                text_node = td
+                text_node = text_node.children[0] while !text_node.children.empty? and !text_node.children[0].text?
                 {
-                  service_type: getServiceType(style, td),
-                  time: getTime(style, td),
+                  service_type: getServiceType(getStyle(td), td),
+                  time: getTime(getStyle(text_node), text_node),
                 }
               },
             }
