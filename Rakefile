@@ -16,63 +16,125 @@ end
 
 desc "Download test data"
 task :download_test_data do
-  require "nokogiri"
-  require "json"
+  require 'capybara'
+  require 'capybara/dsl'
+  require 'capybara/poltergeist'
+  require 'json'
+  require 'nokogiri'
 
-  def parse_time(str)
-    case str.gsub([160].pack('U*'), '').gsub([8211].pack('U*'), '').gsub([8212].pack('U*'), '').gsub(/[\+\*\-]/, '').strip
-    when ''
-      nil
-    when /\A\d?\d:\d\d\Z/
-      str
-    else
-      require 'pry'; binding.pry
-      throw "Unknown time:" + str
+  Capybara.default_driver = :poltergeist
+  Capybara.run_server = false
+
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, js_errors: false, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
+  end
+
+  class WebScraper
+    include Capybara::DSL
+
+    def getStyle(node)
+      # serialization is expensive, so we only return what we need
+      page.evaluate_script("\
+(function() {
+  var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
+  return {
+    backgroundColor: temp_style.backgroundColor,
+    fontWeight: temp_style.fontWeight,
+  }
+})()")
+    end
+
+    def getServiceType(style, node)
+      color = style['backgroundColor'].gsub(' ', '')
+      case color
+      when 'rgb(240,178,161)' # light red
+        'Baby Bullet'
+      when 'rgb(247,232,157)', 'rgb(116,187,146)' # yellow for limited, green for "Timed transfers for local service" only happends as limited
+        'Limited'
+      when 'rgba(0,0,0,0)', 'rgb(255,255,255)' # white
+        'Local'
+      when 'rgb(0,0,0)' # black
+        'SatOnly'
+      else
+        require 'pry'; binding.pry
+        throw 'Unknown backgroundColor:' + color
+      end
+    end
+
+    def isPm(style, node)
+      weight = style['fontWeight']
+      case weight
+      when 'bold'
+        true
+      when 'normal'
+        false
+      else
+        require 'pry'; binding.pry
+        throw 'Unknown font weight:' + weight
+      end
+    end
+
+    def getTime(style, node)
+      is_pm = isPm(style, node)
+      str = node.text
+      [[160].pack('U*'), [8211].pack('U*'), [8212].pack('U*'), /[\+\*\-]/].each { |org| str.gsub!(org, '') }
+      case str
+      when ''
+        nil
+      when /\A\d?\d:\d\d\Z/
+        str
+      else
+        require 'pry'; binding.pry
+        throw "Unknown time:" + str
+      end
+    end
+
+    def get()
+      puts "Visiting weekday..."
+      # visit('weekday.html')
+      visit('http://www.caltrain.com/schedules/weekdaytimetable.html')
+      doc = Nokogiri::HTML(page.html)
+      ["NB_TT", "SB_TT"].each { |name|
+        puts "Getting weekday-#{name}..."
+        schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
+          {
+            name: tr.at_xpath('th[2]/a/text()').to_s.strip,
+            stop_times: tr.xpath('td').collect { |td|
+              style = getStyle(td)
+              {
+                service_type: getServiceType(style, td),
+                time: getTime(style, td),
+              }
+            },
+          }
+        }
+        File.write("test/weekday-#{name}.json", schedule.to_json)
+      }
+
+      puts "Visiting weekend..."
+      # visit('weekend.html')
+      visit('http://www.caltrain.com/schedules/weekend-timetable.html')
+      doc = Nokogiri::HTML(page.html)
+      ["NB_TT", "SB_TT"].each { |name|
+        puts "Getting weekend-#{name}..."
+        schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
+          {
+            name: tr.at_xpath('th[3]/a/text()').to_s.strip,
+            stop_times: tr.xpath('td').collect { |td|
+              style = getStyle(td)
+              {
+                service_type: getServiceType(style, td),
+                time: getTime(style, td),
+              }
+            },
+          }
+        }
+        File.write("test/weekend-#{name}.json", schedule.to_json)
+      }
     end
   end
 
-  # html = `curl http://www.caltrain.com/schedules/weekdaytimetable.html`
-  html = File.read('weekday.html')
-
-  doc = Nokogiri::HTML(html)
-  ["NB_TT", "SB_TT"].each { |name|
-    schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
-      {
-        name: tr.at_xpath('th[2]/a/text()').to_s.strip,
-        stop_times: tr.xpath('td').collect {|td| parse_time(td.text) },
-      }
-    }
-    File.write("test/weekday-#{name}.json", schedule.to_json)
-  }
-
-  # html = `curl http://www.caltrain.com/schedules/weekend-timetable.html`
-  html = File.read('weekend.html')
-  doc = Nokogiri::HTML(html)
-  ["NB_TT", "SB_TT"].each { |name|
-    table = doc.xpath('//table[@class="' + name + '"]')
-    is_sat_col = table.xpath('thead/tr[1]/td').reduce([]) { |arr, td|
-      length = (td.attr('colspan') || 1).to_i
-      is_sat = td.attr('id') == 'saturday'
-      length.times { |i| arr.push(is_sat) }
-      arr
-    }
-
-    saturday = table.xpath('tbody/tr').collect { |tr|
-      {
-        name: tr.at_xpath('th[3]/a/text()').to_s.strip,
-        stop_times: tr.xpath('td').collect {|td| parse_time(td.text) },
-      }
-    }
-    File.write("test/saturday-#{name}.json", saturday.to_json)
-
-    sunday = saturday.map { |row|
-      {
-        name: row['name'],
-        stop_times: row['stop_times'],
-      }
-    }
-    File.write("test/sunday-#{name}.json", sunday.to_json)
-  }
+  WebScraper.new.get()
 end
 
 desc "Download GTFS data"
