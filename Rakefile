@@ -46,12 +46,20 @@ task :download_test_data do
     end
 
     def getServiceType(style, node)
-      color = style['backgroundColor'].gsub(' ', '')
+      color = style['backgroundColor'].gsub(/[[:space:]]/, '')
       case color
       when 'rgb(240,178,161)' # light red
         'Baby Bullet'
-      when 'rgb(247,232,157)', 'rgb(116,187,146)' # yellow for limited, green for "Timed transfers for local service" only happends as limited
+      when 'rgb(247,232,157)' # yellow
         'Limited'
+      when 'rgb(116,187,146)' # green for "Timed transfers for local service" only happends as limited
+        node_column_index = node.parent.children.index(node)
+        first_node_in_same_column = node.parent.parent.at_xpath('tr').children[node_column_index]
+        if node == first_node_in_same_column
+          require 'pry'; binding.pry
+          throw "Transfer can't be in the start station!"
+        end
+        getServiceType(getStyle(first_node_in_same_column), first_node_in_same_column)
       when 'rgba(0,0,0,0)', 'rgb(255,255,255)' # white
         'Local'
       when 'rgb(0,0,0)' # black
@@ -109,7 +117,6 @@ task :download_test_data do
           type_name: 'weekday',
           url: 'http://www.caltrain.com/schedules/weekdaytimetable.html',
           name_xpath: 'th[2]/a',
-
         },
         {
           type_name: 'weekend',
@@ -122,7 +129,7 @@ task :download_test_data do
         doc = Nokogiri::HTML(page.html)
         ["NB_TT", "SB_TT"].each { |direction|
           puts "Getting #{item[:type_name]}-#{direction}..."
-          schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').collect { |tr|
+          schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').map { |tr|
             name_node = tr.at_xpath(item[:name_xpath])
             if name_node == nil
               if tr.at_xpath('th[3]').text == 'Shuttle Bus'
@@ -133,7 +140,7 @@ task :download_test_data do
             end
             {
               name: getName(name_node),
-              stop_times: tr.xpath('td').collect { |td|
+              stop_times: tr.xpath('td').map { |td|
                 while !td.children.empty? and !td.children[0].text?
                   td = td.children[0]
                 end
