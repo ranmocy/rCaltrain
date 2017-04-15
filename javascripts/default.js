@@ -365,34 +365,38 @@
             from.setText(from_name);
             to.setText(to_name);
 
-            assert(from_stops.length === to_stops.length,
-                   "from_stops and to_stops have different length:" + from_name + "=>" + to_name);
             var expected = [];
-            for (var k = from_stops.length - 1; k >= 0; k--) {
-              var from_stop = from_stops[k];
-              var to_stop = to_stops[k];
-              assert(from_stop.service_type === to_stop.service_type,
-                     "from_stop and to_stop have different type:" + from_name + "=>" + to_name +
-                       "@" + from_stop.time + ":" + to_stop.time);
-              if (from_stop.time && to_stop.time) {
-                expected.push([from_stop.time, to_stop.time]);
+            if (assert(from_stops.length === to_stops.length,
+                   "from_stops and to_stops have different length:" + from_name + "=>" + to_name)) {
+              for (var k = from_stops.length - 1; k >= 0; k--) {
+                var from_stop = from_stops[k];
+                var to_stop = to_stops[k];
+                if (assert(from_stop.service_type === to_stop.service_type,
+                       "from_stop and to_stop have different type:" + from_name + "=>" + to_name +
+                         "@" + from_stop.time + ":" + to_stop.time)) {
+                  if (from_stop.time && to_stop.time) {
+                    // since the loop is reversed, insert to first position
+                    expected.unshift([from_stop.time, to_stop.time]);
+                  }
+                }
               }
             }
 
             var results = $result.children;
-            assert(expected.length === results.length,
-                   "expected and results have different length:" + from_name + "=>" + to_name);
-            for (var l = results.length - 1; l >= 0; l--) {
-              var from_text = results[l].children[0].textContent;
-              var to_text = results[l].children[2].textContent;
-              var expected_from_text = expected[l][0];
-              var expected_to_text = expected[l][1];
-              assert(from_text === expected_from_text,
-                     "from time mismatch:" + from_name + "=>" + to_name +
-                       ", expected:" + expected_from_text + ", actual:" + from_text);
-              assert(to_text === expected_to_text,
-                     "to time mismatch:" + from_name + "=>" + to_name +
-                       ", expected:" + expected_to_text + ", actual:" + to_text);
+            if (assert(expected.length === results.length,
+                   "expected and results have different length:" + from_name + "=>" + to_name)) {
+              for (var l = results.length - 1; l >= 0; l--) {
+                var from_text = results[l].children[0].textContent;
+                var to_text = results[l].children[2].textContent;
+                var expected_from_text = expected[l][0];
+                var expected_to_text = expected[l][1];
+                assert(from_text === expected_from_text,
+                       "from time mismatch:" + from_name + "=>" + to_name +
+                         ", expected:" + expected_from_text + ", actual:" + from_text);
+                assert(to_text === expected_to_text,
+                       "to time mismatch:" + from_name + "=>" + to_name +
+                         ", expected:" + expected_to_text + ", actual:" + to_text);
+              }
             }
           }
         }
