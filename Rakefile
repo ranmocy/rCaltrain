@@ -81,13 +81,14 @@ task :download_test_data do
       when ''
         nil
       when /\A\d?\d:\d\d\Z/
-        str = "0#{str}" if /\A\d:\d\d\Z/.match(str)
-        if isPm(style, node)
-          t = str.split(':')
-          t[0] = t[0].to_i + 12
-          str = t.join(':')
+        t = str.split(':').map(&:to_i)
+        is_pm = isPm(style, node)
+        if is_pm and (t[0] != 12)
+          t[0] += 12
+        elsif !is_pm and (t[0] == 12)
+          t[0] -= 12
         end
-        str
+        t.map { |i| i.to_s.rjust(2, '0') }.join(':')
       else
         require 'pry'; binding.pry
         throw "Unknown time:" + str
@@ -100,7 +101,6 @@ task :download_test_data do
 
     def get()
       puts "Visiting weekday..."
-      # visit('weekday.html')
       visit('http://www.caltrain.com/schedules/weekdaytimetable.html')
       doc = Nokogiri::HTML(page.html)
       ["NB_TT", "SB_TT"].each { |name|
@@ -121,7 +121,6 @@ task :download_test_data do
       }
 
       puts "Visiting weekend..."
-      # visit('weekend.html')
       visit('http://www.caltrain.com/schedules/weekend-timetable.html')
       doc = Nokogiri::HTML(page.html)
       ["NB_TT", "SB_TT"].each { |name|
