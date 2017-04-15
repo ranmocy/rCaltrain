@@ -104,58 +104,49 @@ task :download_test_data do
     end
 
     def get()
-      puts "Visiting weekday..."
-      visit('http://www.caltrain.com/schedules/weekdaytimetable.html')
-      doc = Nokogiri::HTML(page.html)
-      ["NB_TT", "SB_TT"].each { |name|
-        puts "Getting weekday-#{name}..."
-        schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
-          {
-            name: getName(tr.at_xpath('th[2]/a')),
-            stop_times: tr.xpath('td').collect { |td|
-              while !td.children.empty? and !td.children[0].text?
-                td = td.children[0]
-              end
-              style = getStyle(td)
-              {
-                service_type: getServiceType(style, td),
-                time: getTime(style, td),
-              }
-            },
-          }
-        }
-        File.write("test/weekday_#{name}.json", schedule.to_json)
-      }
+      [
+        {
+          type_name: 'weekday',
+          url: 'http://www.caltrain.com/schedules/weekdaytimetable.html',
+          name_xpath: 'th[2]/a',
 
-      puts "Visiting weekend..."
-      visit('http://www.caltrain.com/schedules/weekend-timetable.html')
-      doc = Nokogiri::HTML(page.html)
-      ["NB_TT", "SB_TT"].each { |name|
-        puts "Getting weekend-#{name}..."
-        schedule = doc.xpath('//table[@class="' + name + '"]/tbody/tr').collect { |tr|
-          name_node = tr.at_xpath('th[3]/a')
-          if name_node == nil
-            if tr.at_xpath('th[3]').text == 'Shuttle Bus'
-              return nil
-            end
-            require 'pry'; binding.pry
-            throw "Unexpected name"
-          end
-          {
-            name: getName(name_node),
-            stop_times: tr.xpath('td').collect { |td|
-              while !td.children.empty? and !td.children[0].text?
-                td = td.children[0]
+        },
+        {
+          type_name: 'weekend',
+          url: 'http://www.caltrain.com/schedules/weekend-timetable.html',
+          name_xpath: 'th[3]/a',
+        },
+      ].each { |item|
+        puts "Visiting #{item[:type_name]}..."
+        visit(item[:url])
+        doc = Nokogiri::HTML(page.html)
+        ["NB_TT", "SB_TT"].each { |direction|
+          puts "Getting #{item[:type_name]}-#{direction}..."
+          schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').collect { |tr|
+            name_node = tr.at_xpath(item[:name_xpath])
+            if name_node == nil
+              if tr.at_xpath('th[3]').text == 'Shuttle Bus'
+                return nil
               end
-              style = getStyle(td)
-              {
-                service_type: getServiceType(style, td),
-                time: getTime(style, td),
-              }
-            },
+              require 'pry'; binding.pry
+              throw "Unexpected name"
+            end
+            {
+              name: getName(name_node),
+              stop_times: tr.xpath('td').collect { |td|
+                while !td.children.empty? and !td.children[0].text?
+                  td = td.children[0]
+                end
+                style = getStyle(td)
+                {
+                  service_type: getServiceType(style, td),
+                  time: getTime(style, td),
+                }
+              },
+            }
           }
+          File.write("test/#{item[:type_name]}_#{direction}.json", schedule.to_json)
         }
-        File.write("test/weekend_#{name}.json", schedule.to_json)
       }
     end
   end
