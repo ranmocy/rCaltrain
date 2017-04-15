@@ -75,13 +75,18 @@ task :download_test_data do
     end
 
     def getTime(style, node)
-      is_pm = isPm(style, node)
       str = node.text
       [[160].pack('U*'), [8211].pack('U*'), [8212].pack('U*'), /[\+\*\-]/].each { |org| str.gsub!(org, '') }
       case str
       when ''
         nil
       when /\A\d?\d:\d\d\Z/
+        str = "0#{str}" if /\A\d:\d\d\Z/.match(str)
+        if isPm(style, node)
+          t = str.split(':')
+          t[0] = t[0].to_i + 12
+          str = t.join(':')
+        end
         str
       else
         require 'pry'; binding.pry
