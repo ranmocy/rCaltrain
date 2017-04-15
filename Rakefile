@@ -109,6 +109,7 @@ task :download_test_data do
         .gsub(/[[:space:]]/, 32.chr) # unify all space chars
         .gsub('22nd Street', '22nd St') # name mapping
         .gsub('Mountain View', 'Mt View')
+        .gsub('SJ Diridon', 'San Jose Diridon')
     end
 
     def get()
@@ -133,7 +134,8 @@ task :download_test_data do
             name_node = tr.at_xpath(item[:name_xpath])
             if name_node == nil
               if tr.at_xpath('th[3]').text == 'Shuttle Bus'
-                return nil
+                puts 'skip shuttle bus'
+                next nil
               end
               require 'pry'; binding.pry
               throw "Unexpected name"
@@ -151,7 +153,7 @@ task :download_test_data do
                 }
               },
             }
-          }
+          }.keep_if {|item| item != nil }
           File.write("test/#{item[:type_name]}_#{direction}.json", schedule.to_json)
         }
       }
