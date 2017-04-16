@@ -1,7 +1,7 @@
 (function(){
   "use strict";
 
-  var from, to, when, data = {};
+  var $from, $to, $whenList, data = {};
 
   var $ = function() {
     return document.querySelector.apply(document, arguments);
@@ -87,8 +87,8 @@
   function save_cookies () {
     // Expires in one year
     var expire_str = ";expires=" + new Date(Date.now() + 31536e6).toUTCString();
-    document.cookie = "from=" + encodeURIComponent(from.getText()) + expire_str;
-    document.cookie = "to=" + encodeURIComponent(to.getText()) + expire_str;
+    document.cookie = "from=" + encodeURIComponent($from.getText()) + expire_str;
+    document.cookie = "to=" + encodeURIComponent($to.getText()) + expire_str;
     var $selected = $('.when-button.selected');
     var value = is_defined($selected) ? encodeURIComponent($('.when-button.selected').getAttribute('value')) : "";
     document.cookie = "when=" + value + expire_str;
@@ -104,10 +104,10 @@
     var to_cookie = get_cookie("to");
     var when_cookie = get_cookie("when");
     if (is_defined(from_cookie)) {
-      from.setText(from_cookie);
+      $from.setText(from_cookie);
     }
     if (is_defined(to_cookie)) {
-      to.setText(to_cookie);
+      $to.setText(to_cookie);
     }
     if (is_defined(when_cookie)) {
       var $elem = $('.when-button[value="' + when_cookie + '"]');
@@ -319,8 +319,8 @@
   function schedule () {
     var stops = data.stops, routes = data.routes,
         calendar = data.calendar, calendar_dates = data.calendar_dates;
-    var from_ids = stops[from.getText()],
-        to_ids = stops[to.getText()],
+    var from_ids = stops[$from.getText()],
+        to_ids = stops[$to.getText()],
         services = get_available_services(routes, calendar, calendar_dates);
 
     // if some input is invalid, just return
@@ -336,7 +336,7 @@
   }
 
   function bind_events () {
-    [from, to].forEach(function(c) {
+    [$from, $to].forEach(function(c) {
       // when focus, reset input
       c.on("focus", function() {
         c.setText('');
@@ -347,9 +347,9 @@
       c.on("complete", schedule);
     });
 
-    when.forEach(function($elem) {
+    $whenList.forEach(function($elem) {
       $elem.on("click", function() {
-        when.forEach(function($elem) {
+        $whenList.forEach(function($elem) {
           $elem.removeClass("selected");
         });
         $elem.addClass("selected");
@@ -358,9 +358,9 @@
     });
 
     $("#reverse").on("click", function() {
-      var t = from.getText();
-      from.setText(to.getText());
-      to.setText(t);
+      var t = $from.getText();
+      $from.setText($to.getText());
+      $to.setText(t);
       schedule();
     });
   }
@@ -370,14 +370,14 @@
     FastClick.attach(document.body);
 
     // init inputs elements
-    from = rComplete($('#from'), { placeholder: "Departure" });
-    to = rComplete($('#to'), { placeholder: "Destination" });
-    when = $.queryAll('.when-button');
+    $from = rComplete($('#from'), { placeholder: "Departure" });
+    $to = rComplete($('#to'), { placeholder: "Destination" });
+    $whenList = $.queryAll('.when-button');
 
     // generate select options
     var names = Object.keys(data.stops);
-    from.setOptions(names);
-    to.setOptions(names);
+    $from.setOptions(names);
+    $to.setOptions(names);
 
     // init
     load_cookies();
@@ -553,6 +553,6 @@
         $test_result.insertBefore($total, $test_result.firstChild);
         console.debug('Finish testing');
       });
-    })(from, to, when, $('#result'));
+    })($from, $to, $whenList, $('#result'));
   }
 }());
