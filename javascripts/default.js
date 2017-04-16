@@ -3,27 +3,111 @@
 
   var from, to, when, data = {};
 
+  var $ = function() {
+    return document.querySelector.apply(document, arguments);
+  };
+  $.queryAll = function() {
+    return document.querySelectorAll.apply(document, arguments);
+  };
+  $.createElement = function(name, attrs) {
+    var $elem = document.createElement(name);
+    if (is_defined(attrs)) {
+      Object.keys(attrs).forEach(function(attr_name) {
+        $elem[attr_name] = attrs[attr_name];
+      });
+    }
+    return $elem;
+  };
+  $.ready = function(callback) {
+    if (document.readyState != 'loading'){
+      callback();
+    } else if (document.addEventListener) {
+      document.addEventListener('DOMContentLoaded', callback);
+    } else {
+      document.attachEvent('onreadystatechange', function() {
+        if (document.readyState != 'loading')
+          callback();
+      });
+    }
+  };
+  $.getJSON = function(url, callback) {
+    var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+
+    request.onreadystatechange = function() {
+      if (this.readyState === 4) {
+        if (this.status >= 200 && this.status < 400) {
+          // Success!
+          var data = JSON.parse(this.responseText);
+          callback(data);
+        } else {
+          console.error("Fetch failed!");
+        }
+      }
+    };
+
+    request.send();
+    request = null;
+  };
+
+  HTMLElement.prototype.addClass = function(className) {
+    if (this.classList)
+      this.classList.add(className);
+    else
+      this.className += ' ' + className;
+  };
+  HTMLElement.prototype.removeClass = function(className) {
+    if (this.classList)
+      this.classList.remove(className);
+    else
+      this.className = this.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+  };
+  HTMLElement.prototype.empty = function() {
+    while(this.firstChild) this.removeChild(this.firstChild);
+    return this;
+  };
+  HTMLElement.prototype.on = function(eventName, handler) {
+    if (this.addEventListener) {
+      this.addEventListener(eventName, handler);
+    } else {
+      this.attachEvent('on' + eventName, function(){
+        handler.call(this);
+      });
+    }
+  };
+
   function is_defined (obj) {
-    return typeof(obj) !== "undefined";
+    return typeof(obj) !== "undefined" && obj !== null;
   }
 
   function save_cookies () {
-    $.cookie("from", from.getText());
-    $.cookie("to", to.getText());
-    $.cookie("when", $('.when-button.selected').val());
+    // Expires in one year
+    var expire_str = ";expires=" + new Date(Date.now() + 31536e6).toUTCString();
+    document.cookie = "from=" + encodeURIComponent(from.getText()) + expire_str;
+    document.cookie = "to=" + encodeURIComponent(to.getText()) + expire_str;
+    document.cookie = "when=" + encodeURIComponent($('.when-button.selected').value) + expire_str;
+  }
+
+  function get_cookie(name) {
+    var regex = new RegExp('(?:(?:^|.*;\\s*)' + name + '\\s*\\=\\s*([^;]*).*$)|^.*$');
+    return decodeURIComponent(document.cookie.replace(regex, "$1"));
   }
 
   function load_cookies () {
-    $.cookie.defaults.expires = 365; // expire in one year
-    $.cookie.defaults.path = '/'; // available across the whole site
-    if (is_defined($.cookie("from"))) {
-      from.setText($.cookie("from"));
+    var from_cookie = get_cookie("from");
+    var to_cookie = get_cookie("to");
+    var when_cookie = get_cookie("when");
+    if (is_defined(from_cookie)) {
+      from.setText(from_cookie);
     }
-    if (is_defined($.cookie("to"))) {
-      to.setText($.cookie("to"));
+    if (is_defined(to_cookie)) {
+      to.setText(to_cookie);
     }
-    if (is_defined($.cookie("when"))) {
-      $('.when-button[value="' + $.cookie("when") + '"]').addClass('selected');
+    if (is_defined(when_cookie)) {
+      var $elem = $('.when-button[value="' + when_cookie + '"]');
+      if (is_defined($elem)) {
+        $elem.addClass('selected');
+      }
     }
   }
 
@@ -77,13 +161,13 @@
   }
 
   function is_now () {
-    return $('.when-button.selected').val() === "now";
+    return $('.when-button.selected').value === "now";
   }
 
   function get_service_ids (calendar, calendar_dates) {
     var date = now_date();
 
-    var selected_schedule = $('.when-button.selected').val();
+    var selected_schedule = $('.when-button.selected').value;
     var target_schedule = selected_schedule;
     if (target_schedule === 'now') {
       // getDay is "0 for Sunday", map to "0 for Monday"
@@ -204,18 +288,22 @@
     var info = $("#info").empty();
     if (is_now() && is_defined(next_train)) {
       var next_relative = time_relative(now(), next_train.departure_time);
-      info.append('<div class="info">Next train: ' + next_relative + 'min</div>');
+      var $div = $.createElement('div', {className: 'info', textContent: 'Next train: ' + next_relative + 'min'});
+      info.appendChild($div);
     }
   }
 
   function render_result (trips) {
     var result = $("#result").empty();
     trips.forEach(function(trip) {
-      result.append('<div class="trip">' +
-                    '<span class="departure">' + second2str(trip.departure_time) + '</span>' +
-                    '<span class="duration">' + time_relative(trip.departure_time, trip.arrival_time) + ' min</span>' +
-                    '<span class="arrival">' + second2str(trip.arrival_time) + '</span>' +
-                    '</div>');
+      var $departure = $.createElement('span', {className: 'departure', textContent: second2str(trip.departure_time)});
+      var $duration = $.createElement('span', {className: 'duration', textContent: time_relative(trip.departure_time, trip.arrival_time) + ' min'});
+      var $arrival = $.createElement('span', {className: 'arrival', textContent: second2str(trip.arrival_time)});
+      var $div = $.createElement('div', {className: 'trip'});
+      $div.appendChild($departure);
+      $div.appendChild($duration);
+      $div.appendChild($arrival);
+      result.appendChild($div);
     });
   }
 
@@ -250,12 +338,12 @@
       c.on("complete", schedule);
     });
 
-    when.each(function(index, elem) {
-      $(elem).on("click", function() {
-        when.each(function(index, elem) {
-          $(elem).removeClass("selected");
+    when.forEach(function($elem) {
+      $elem.on("click", function() {
+        when.forEach(function($elem) {
+          $elem.removeClass("selected");
         });
-        $(elem).addClass("selected");
+        $elem.addClass("selected");
         schedule();
       });
     });
@@ -273,9 +361,9 @@
     FastClick.attach(document.body);
 
     // init inputs elements
-    from = rComplete($('#from')[0], { placeholder: "Departure" });
-    to = rComplete($('#to')[0], { placeholder: "Destination" });
-    when = $('.when-button');
+    from = rComplete($('#from'), { placeholder: "Departure" });
+    to = rComplete($('#to'), { placeholder: "Destination" });
+    when = $.queryAll('.when-button');
 
     // generate select options
     var names = Object.keys(data.stops);
@@ -320,7 +408,7 @@
   },
   function(result) {
     data = result;
-    $(initialize);
+    $.ready(initialize);
   });
 
 
@@ -336,16 +424,13 @@
       }, function(test_data) {
         console.debug('Start testing');
 
-        var $test_result = document.createElement('div');
-        $test_result.id = 'test_result';
+        var $test_result = $.createElement('div', {id: 'test_result'});
         document.documentElement.appendChild($test_result);
         function assert(check, msg) {
           if (!check) {
-            var $item = document.createElement('div');
-            $item.className = "test_result_item";
+            var $item = $.createElement('div', {className: "test_result_item"});
             msg.split("\n").forEach(function(line) {
-              var $line = document.createElement('div');
-              $line.textContent = line;
+              var $line = $.createElement('div', {textContent: line});
               $item.appendChild($line);
             });
             $test_result.appendChild($item);
@@ -455,11 +540,10 @@
         runTest(test_data.weekend_NB_TT, 'sunday');
         runTest(test_data.weekend_SB_TT, 'sunday');
 
-        var $total = document.createElement('div');
-        $total.textContent = "Total failed:" + $test_result.children.length;
+        var $total = $.createElement('div', {textContent: "Total failed:" + $test_result.children.length});
         $test_result.insertBefore($total, $test_result.firstChild);
         console.debug('Finish testing');
       });
-    })(from, to, when, document.querySelector('#result'));
+    })(from, to, when, $('#result'));
   }
 }());

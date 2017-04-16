@@ -16,16 +16,19 @@ images/switcher.png
 index.html
 javascripts/default.js
 javascripts/fastclick.min.js
-javascripts/jquery-2.1.0.min.js
-javascripts/jquery.cookie.min.js
 javascripts/rComplete.min.js
 offline.html
 stylesheets/default.css
 
 NETWORK:
+android/*
+design/*
 gtfs/*
-prepare.rb
-src/*
+ios/*
+test/*
+Gemfile
+Gemfile.lock
+Rakefile
 
 FALLBACK:
 / offline.html
