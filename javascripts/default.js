@@ -7,7 +7,11 @@
     return document.querySelector.apply(document, arguments);
   };
   $.queryAll = function() {
-    return document.querySelectorAll.apply(document, arguments);
+    var nodeList = document.querySelectorAll.apply(document, arguments);
+    nodeList.forEach = function(callback) {
+      [].forEach.call(nodeList, callback);
+    };
+    return nodeList;
   };
   $.createElement = function(name, attrs) {
     var $elem = document.createElement(name);
@@ -85,7 +89,9 @@
     var expire_str = ";expires=" + new Date(Date.now() + 31536e6).toUTCString();
     document.cookie = "from=" + encodeURIComponent(from.getText()) + expire_str;
     document.cookie = "to=" + encodeURIComponent(to.getText()) + expire_str;
-    document.cookie = "when=" + encodeURIComponent($('.when-button.selected').value) + expire_str;
+    var $selected = $('.when-button.selected');
+    var value = is_defined($selected) ? encodeURIComponent($('.when-button.selected').getAttribute('value')) : "";
+    document.cookie = "when=" + value + expire_str;
   }
 
   function get_cookie(name) {
@@ -161,13 +167,16 @@
   }
 
   function is_now () {
-    return $('.when-button.selected').value === "now";
+    var $selected = $('.when-button.selected');
+    var value = is_defined($selected) ? encodeURIComponent($('.when-button.selected').getAttribute('value')) : "";
+    return value === "now";
   }
 
   function get_service_ids (calendar, calendar_dates) {
     var date = now_date();
 
-    var selected_schedule = $('.when-button.selected').value;
+    var $selected = $('.when-button.selected');
+    var selected_schedule = is_defined($selected) ? encodeURIComponent($('.when-button.selected').getAttribute('value')) : "";
     var target_schedule = selected_schedule;
     if (target_schedule === 'now') {
       // getDay is "0 for Sunday", map to "0 for Monday"
