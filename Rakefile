@@ -24,6 +24,7 @@ task :download_test_data do
   require 'json'
   require 'nokogiri'
 
+  Capybara.reset!
   Capybara.default_driver = :poltergeist
   Capybara.run_server = false
 
@@ -163,13 +164,15 @@ task :download_test_data do
 end
 
 desc "Run test"
-task :spec do
+task spec: :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
   require 'capybara/poltergeist'
   require 'rack'
 
+  Capybara.reset!
   Capybara.app = Rack::File.new File.dirname __FILE__
+  Capybara.run_server = true
 
   Capybara.default_driver = :poltergeist
   Capybara.register_driver :poltergeist do |app|
