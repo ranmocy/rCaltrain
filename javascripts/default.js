@@ -1,28 +1,17 @@
 (function(){
   "use strict";
 
-  var $from, $to, $whenList, data = {};
+  var $from, $to, $whenList, data = {}, $ = function() { return document.querySelector.apply(document, arguments); };
 
-  var $ = function() {
-    return document.querySelector.apply(document, arguments);
-  };
-  $.queryAll = function() {
+  function findAll() {
     var nodeList = document.querySelectorAll.apply(document, arguments);
     nodeList.forEach = function(callback) {
       [].forEach.call(nodeList, callback);
     };
     return nodeList;
-  };
-  $.createElement = function(name, attrs) {
-    var $elem = document.createElement(name);
-    if (is_defined(attrs)) {
-      Object.keys(attrs).forEach(function(attr_name) {
-        $elem[attr_name] = attrs[attr_name];
-      });
-    }
-    return $elem;
-  };
-  $.ready = function(callback) {
+  }
+
+  function onDocumentReady(callback) {
     if (document.readyState != 'loading'){
       callback();
     } else if (document.addEventListener) {
@@ -33,11 +22,72 @@
           callback();
       });
     }
-  };
-  $.getJSON = function(url, callback) {
+  }
+
+  function is_defined (obj) {
+    return typeof(obj) !== "undefined" && obj !== null;
+  }
+
+  function extendObject(destination, source) {
+    for (var property in source) {
+      if (source.hasOwnProperty(property)) {
+        destination[property] = source[property];
+      }
+    }
+    return destination;
+  }
+
+  function repeatString(str, num) {
+    return (num <= 0) ? "" : str + repeatString(str, num - 1);
+  }
+
+  function rjustString(str, width, padding) {
+    padding = (padding || " ").substr(0, 1); // one and only one char
+    return repeatString(padding, width - str.length) + str;
+  }
+
+  function createElement(name, attrs) {
+    var $elem = document.createElement(name);
+    if (is_defined(attrs)) {
+      Object.keys(attrs).forEach(function(attr_name) {
+        $elem[attr_name] = attrs[attr_name];
+      });
+    }
+    return $elem;
+  }
+
+  function removeAllChildren(elem) {
+    while(elem.firstChild) elem.removeChild(elem.firstChild);
+    return elem;
+  }
+
+  function addClass(elem, className) {
+    if (elem.classList)
+      elem.classList.add(className);
+    else
+      elem.className += ' ' + className;
+  }
+
+  function removeClass(elem, className) {
+    if (elem.classList)
+      elem.classList.remove(className);
+    else
+      elem.className = elem.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+  }
+
+  function bindEvent(elem, eventName, handler) {
+    if (elem.addEventListener) {
+      elem.addEventListener(eventName, handler);
+    } else {
+      elem.attachEvent('on' + eventName, function(){
+        handler.call(elem);
+      });
+    }
+  }
+
+  function getJSON(url, callback) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
-
     request.onreadystatechange = function() {
       if (this.readyState === 4) {
         if (this.status >= 200 && this.status < 400) {
@@ -49,39 +99,8 @@
         }
       }
     };
-
     request.send();
     request = null;
-  };
-
-  HTMLElement.prototype.addClass = function(className) {
-    if (this.classList)
-      this.classList.add(className);
-    else
-      this.className += ' ' + className;
-  };
-  HTMLElement.prototype.removeClass = function(className) {
-    if (this.classList)
-      this.classList.remove(className);
-    else
-      this.className = this.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
-  };
-  HTMLElement.prototype.empty = function() {
-    while(this.firstChild) this.removeChild(this.firstChild);
-    return this;
-  };
-  HTMLElement.prototype.on = function(eventName, handler) {
-    if (this.addEventListener) {
-      this.addEventListener(eventName, handler);
-    } else {
-      this.attachEvent('on' + eventName, function(){
-        handler.call(this);
-      });
-    }
-  };
-
-  function is_defined (obj) {
-    return typeof(obj) !== "undefined" && obj !== null;
   }
 
   function save_cookies () {
@@ -112,28 +131,10 @@
     if (is_defined(when_cookie)) {
       var $elem = $('.when-button[value="' + when_cookie + '"]');
       if (is_defined($elem)) {
-        $elem.addClass('selected');
+        addClass($elem, 'selected');
       }
     }
   }
-
-  String.prototype.repeat = function(num) {
-    return (num <= 0) ? "" : this + this.repeat(num - 1);
-  };
-
-  String.prototype.rjust = function(width, padding) {
-    padding = (padding || " ").substr(0, 1); // one and only one char
-    return padding.repeat(width - this.length) + this;
-  };
-
-  Object.extend = function(destination, source) {
-    for (var property in source) {
-      if (source.hasOwnProperty(property)) {
-        destination[property] = source[property];
-      }
-    }
-    return destination;
-  };
 
   // now in seconds since the midnight
   function now () {
@@ -148,7 +149,7 @@
     var d = new Date();
     // getMonth starts from 0
     return parseInt([d.getFullYear(), d.getMonth() + 1, d.getDate()].map(function(n){
-      return n.toString().rjust(2, '0');
+      return rjustString(n.toString(), 2, '0');
     }).join(''));
   }
 
@@ -158,7 +159,7 @@
       Math.floor(minutes / 60) % 24,
       minutes % 60
     ].map(function(item) {
-      return item.toString().rjust(2, '0');
+      return rjustString(item.toString(), 2, '0');
     }).join(':');
   }
 
@@ -239,7 +240,7 @@
         if (!is_defined(availables[route_id])) {
           availables[route_id] = {};
         }
-        Object.extend(availables[route_id], trips);
+        extendObject(availables[route_id], trips);
       });
     });
 
@@ -294,21 +295,21 @@
   }
 
   function render_info (next_train) {
-    var info = $("#info").empty();
+    var info = removeAllChildren($("#info"));
     if (is_now() && is_defined(next_train)) {
       var next_relative = time_relative(now(), next_train.departure_time);
-      var $div = $.createElement('div', {className: 'info', textContent: 'Next train: ' + next_relative + 'min'});
+      var $div = createElement('div', {className: 'info', textContent: 'Next train: ' + next_relative + 'min'});
       info.appendChild($div);
     }
   }
 
   function render_result (trips) {
-    var result = $("#result").empty();
+    var result = removeAllChildren($("#result"));
     trips.forEach(function(trip) {
-      var $departure = $.createElement('span', {className: 'departure', textContent: second2str(trip.departure_time)});
-      var $duration = $.createElement('span', {className: 'duration', textContent: time_relative(trip.departure_time, trip.arrival_time) + ' min'});
-      var $arrival = $.createElement('span', {className: 'arrival', textContent: second2str(trip.arrival_time)});
-      var $div = $.createElement('div', {className: 'trip'});
+      var $departure = createElement('span', {className: 'departure', textContent: second2str(trip.departure_time)});
+      var $duration = createElement('span', {className: 'duration', textContent: time_relative(trip.departure_time, trip.arrival_time) + ' min'});
+      var $arrival = createElement('span', {className: 'arrival', textContent: second2str(trip.arrival_time)});
+      var $div = createElement('div', {className: 'trip'});
       $div.appendChild($departure);
       $div.appendChild($duration);
       $div.appendChild($arrival);
@@ -348,16 +349,16 @@
     });
 
     $whenList.forEach(function($elem) {
-      $elem.on("click", function() {
+      bindEvent($elem, "click", function() {
         $whenList.forEach(function($elem) {
-          $elem.removeClass("selected");
+          removeClass($elem, "selected");
         });
-        $elem.addClass("selected");
+        addClass($elem, "selected");
         schedule();
       });
     });
 
-    $("#reverse").on("click", function() {
+    bindEvent($("#reverse"), "click", function() {
       var t = $from.getText();
       $from.setText($to.getText());
       $to.setText(t);
@@ -372,7 +373,7 @@
     // init inputs elements
     $from = rComplete($('#from'), { placeholder: "Departure" });
     $to = rComplete($('#to'), { placeholder: "Destination" });
-    $whenList = $.queryAll('.when-button');
+    $whenList = findAll('.when-button');
 
     // generate select options
     var names = Object.keys(data.stops);
@@ -394,7 +395,7 @@
     var data = {};
     Object.keys(name_to_path).forEach(function(name) { data[name] = undefined; });
     Object.keys(name_to_path).forEach(function(name) {
-      $.getJSON(name_to_path[name], function(json) {
+      getJSON(name_to_path[name], function(json) {
         data[name] = json;
         for (var p in data) {
           if (typeof(data[p]) === 'undefined') {
@@ -417,7 +418,7 @@
   },
   function(result) {
     data = result;
-    $.ready(initialize);
+    onDocumentReady(initialize);
   });
 
 
@@ -433,14 +434,13 @@
       }, function(test_data) {
         console.debug('Start testing');
 
-        var $test_result = $.createElement('div', {id: 'test_result'});
+        var $test_result = createElement('div', {id: 'test_result'});
         document.documentElement.appendChild($test_result);
         function assert(check, msg) {
           if (!check) {
-            var $item = $.createElement('div', {className: "test_result_item"});
+            var $item = createElement('div', {className: "test_result_item"});
             msg.split("\n").forEach(function(line) {
-              var $line = $.createElement('div', {textContent: line});
-              $item.appendChild($line);
+              $item.appendChild($createElement('div', {textContent: line}));
             });
             $test_result.appendChild($item);
           }
@@ -450,7 +450,7 @@
         function fixTimeFormat(time_str) {
           var t = time_str.split(":");
           t[0] = t[0] % 24;
-          return t.map(function(item) { return item.toString().rjust(2, '0'); }).join(":");
+          return t.map(function(item) { return rjustString(item.toString(), 2, '0'); }).join(":");
         }
 
         function formatExpectTime(expect) {
@@ -549,7 +549,7 @@
         runTest(test_data.weekend_NB_TT, 'sunday');
         runTest(test_data.weekend_SB_TT, 'sunday');
 
-        var $total = $.createElement('div', {textContent: "Total failed:" + $test_result.children.length});
+        var $total = createElement('div', {textContent: "Total failed:" + $test_result.children.length});
         $test_result.insertBefore($total, $test_result.firstChild);
         console.debug('Finish testing');
       });
