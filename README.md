@@ -1,6 +1,8 @@
 rCaltrain
 =========
 
+[![Build Status](https://travis-ci.org/ranmocy/rCaltrain.svg?branch=master)](https://travis-ci.org/ranmocy/rCaltrain)
+
 [A Better Caltrain Timetable App](http://rcaltrain.com/)
 
 # Data source

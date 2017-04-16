@@ -1,5 +1,5 @@
 class Hash
-  def map(&block)
+  def mapHash(&block)
     if block_given?
       self.inject({}) { |h, (k,v)| h[k] = yield(k, v); h }
     else
@@ -14,6 +14,8 @@ class File
   end
 end
 
+task default: :spec
+
 desc "Download test data"
 task :download_test_data do
   require 'capybara'
@@ -22,6 +24,7 @@ task :download_test_data do
   require 'json'
   require 'nokogiri'
 
+  Capybara.reset!
   Capybara.default_driver = :poltergeist
   Capybara.run_server = false
 
@@ -160,16 +163,16 @@ task :download_test_data do
   WebScraper.new.get()
 end
 
-# task default: :spec
-
 desc "Run test"
-task :default do
+task spec: :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
   require 'capybara/poltergeist'
   require 'rack'
 
+  Capybara.reset!
   Capybara.app = Rack::File.new File.dirname __FILE__
+  Capybara.run_server = true
 
   Capybara.default_driver = :poltergeist
   Capybara.register_driver :poltergeist do |app|
@@ -362,7 +365,7 @@ task :prepare_data do
         end
       }
       .group_by(&:service_id)
-      .map { |service_id, items|
+      .mapHash { |service_id, items|
         if items.size != 1
           require 'pry'; binding.pry
         end
@@ -390,7 +393,7 @@ task :prepare_data do
         service.date >= now_date
       }
       .group_by(&:service_id)
-      .map { |service_id, items|
+      .mapHash { |service_id, items|
         items.map { |item| item.fields[1..-1] }
       }
 
@@ -420,7 +423,7 @@ task :prepare_data do
         item.stop_name.gsub!(/ (Caltrain|Station)/, '').gsub!(/^San Jose$/, 'San Jose Diridon')
       }
       .group_by(&:stop_name)
-      .map { |name, items| # customized Hash#map
+      .mapHash { |name, items|
         items.map(&:stop_id).sort
       }
 
@@ -456,7 +459,7 @@ task :prepare_data do
         end
       }
       .group_by(&:trip_id)
-      .map { |trip_id, trips_values| # customized Hash#map
+      .mapHash { |trip_id, trips_values|
         trips_values
           .sort_by(&:stop_sequence)
           .map { |trip|
@@ -468,13 +471,13 @@ task :prepare_data do
     # { route_id => { service_id => { trip_id => ... } } }
     trips = trips
       .group_by(&:route_id)
-      .map { |route_id, route_trips|
+      .mapHash { |route_id, route_trips|
         route_trips
           .group_by(&:service_id)
-          .map { |service_id, service_trips|
+          .mapHash { |service_id, service_trips|
             service_trips
               .group_by(&:trip_id)
-              .map { |trip_id, trip_trips|
+              .mapHash { |trip_id, trip_trips|
                 times[trip_id]
               }
           }
@@ -484,7 +487,7 @@ task :prepare_data do
     routes = routes
       .select { |route| route.route_type == 2 } # 2 for Rail, 3 for bus
       .group_by(&:route_id)
-      .map { |name, routes_values|
+      .mapHash { |name, routes_values|
         routes_values
           .map(&:route_id)
           .inject({}) { |h, route_id|
