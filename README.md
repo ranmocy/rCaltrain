@@ -26,6 +26,7 @@ Regarding your selected departure and destination stations:
 
 * [UglifyCSS](https://github.com/fmarcia/UglifyCSS): `npm install uglifycss -g`
 * [UglifyJS2](https://github.com/mishoo/UglifyJS2): `npm install uglify-js -g`
+* [PhantomJS](http://phantomjs.org/): `brew install phantomjs`
 * Ruby gems: `bundle`
 
 # Size
