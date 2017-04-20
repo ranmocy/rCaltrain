@@ -1,17 +1,17 @@
-rCaltrain
+rCaltrain - [A Better Caltrain Timetable](http://rcaltrain.com/)
 =========
 
 [![Build Status](https://travis-ci.org/ranmocy/rCaltrain.svg?branch=master)](https://travis-ci.org/ranmocy/rCaltrain)
 
-[A Better Caltrain Timetable App](http://rcaltrain.com/)
+Calculation data are from [Caltrain Developer](http://www.caltrain.com/developer.html).
+
+Calculation results are tested against [Caltrain Weekday Timetable](http://www.caltrain.com/schedules/weekdaytimetable.html) and [Caltrain Weekend Timetable](http://www.caltrain.com/schedules/weekend-timetable.html).
+
+# Screenshot
 
 <p align="center">
   <img width="300" src="design/screenshot.png?raw=true" title="Screenshot" alt="Screenshot" />
 </p>
-
-# Data source
-
-From [Caltrain Developer](http://www.caltrain.com/developer.html)
 
 # Schedules
 
@@ -24,9 +24,9 @@ Regarding your selected departure and destination stations:
 
 # Dev Dependencies
 
-* [plist](https://rubygems.org/gems/plist): `gem install plist`
 * [UglifyCSS](https://github.com/fmarcia/UglifyCSS): `npm install uglifycss -g`
 * [UglifyJS2](https://github.com/mishoo/UglifyJS2): `npm install uglify-js -g`
+* Ruby gems: `bundle`
 
 # Size
 
@@ -41,4 +41,5 @@ As of [2017-04-15 22:04:33 -0700](https://github.com/ranmocy/rCaltrain/commit/a1
 
 # TODO
 
-1. Fix iOS version for new data starts from 2016/04/04
+1. Add test for Android version
+2. Fix iOS version for new data starts from 2016/04/04
