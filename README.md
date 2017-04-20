@@ -5,6 +5,10 @@ rCaltrain
 
 [A Better Caltrain Timetable App](http://rcaltrain.com/)
 
+<p align="center">
+  <img width="300" src="design/screenshot.png?raw=true" title="Screenshot" alt="Screenshot" />
+</p>
+
 # Data source
 
 From [Caltrain Developer](http://www.caltrain.com/developer.html)
