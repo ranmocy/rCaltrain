@@ -41,11 +41,17 @@ public class HomeActivityUnitTest {
 
     private static Gson gson;
     private static List<ScheduleRow> weekdayNB;
+    private static List<ScheduleRow> weekdaySB;
+    private static List<ScheduleRow> weekendNB;
+    private static List<ScheduleRow> weekendSB;
 
     @BeforeClass
     public static void loadData() {
         gson = new Gson();
         weekdayNB = getData("weekday_nb_tt.json");
+        weekdaySB = getData("weekday_sb_tt.json");
+        weekendNB = getData("weekend_nb_tt.json");
+        weekendSB = getData("weekend_sb_tt.json");
     }
 
     private static List<ScheduleRow> getData(String filename) {
@@ -64,6 +70,10 @@ public class HomeActivityUnitTest {
     private static final class StopTime {
         private String service_type = null;
         private String time = null;
+
+        boolean isSatOnly() {
+            return "SatOnly".equals(service_type);
+        }
     }
 
 
@@ -88,9 +98,51 @@ public class HomeActivityUnitTest {
 
     @Test
     public void test_stationList() {
-        // check station name is in station list
-        for (int i = weekdayNB.size() - 1; i >= 0; i--) {
-            String stationName = weekdayNB.get(i).name;
+        testStationList(weekdayNB);
+        testStationList(weekdaySB);
+        testStationList(weekendNB);
+        testStationList(weekendSB);
+    }
+
+    @Test
+    public void test_schedule_weekdayNB() {
+        btnWeek.performClick();
+        testSchedule(weekdayNB, false);
+    }
+
+    @Test
+    public void test_schedule_weekdaySB() {
+        btnWeek.performClick();
+        testSchedule(weekdaySB, false);
+    }
+
+    @Test
+    public void test_schedule_saturdayNB() {
+        btnSat.performClick();
+        testSchedule(weekendNB, true);
+    }
+
+    @Test
+    public void test_schedule_saturdaySB() {
+        btnSat.performClick();
+        testSchedule(weekendSB, true);
+    }
+
+    @Test
+    public void test_schedule_sundayNB() {
+        btnSun.performClick();
+        testSchedule(weekendNB, false);
+    }
+
+    @Test
+    public void test_schedule_sundaySB() {
+        btnSun.performClick();
+        testSchedule(weekendSB, false);
+    }
+
+    private void testStationList(List<ScheduleRow> schedules) {
+        for (int i = schedules.size() - 1; i >= 0; i--) {
+            String stationName = schedules.get(i).name;
 
             arrivalInput.performClick();
             clickStation(stationName);
@@ -100,12 +152,9 @@ public class HomeActivityUnitTest {
         }
     }
 
-    @Test
-    public void test_schedule_weekdayNB() {
-        btnWeek.performClick();
-
-        for (int i = weekdayNB.size() - 1; i >= 0; i--) {
-            ScheduleRow to = weekdayNB.get(i);
+    private void testSchedule(List<ScheduleRow> schedules, boolean isSaturday) {
+        for (int i = schedules.size() - 1; i >= 0; i--) {
+            ScheduleRow to = schedules.get(i);
             String toName = to.name;
             StopTime[] toStops = to.stop_times;
             Log.i("test", "Testing to:" + toName);
@@ -113,7 +162,7 @@ public class HomeActivityUnitTest {
             arrivalInput.setText(toName);
 
             for (int j = i - 1; j >= 0; j--) {
-                ScheduleRow from = weekdayNB.get(j);
+                ScheduleRow from = schedules.get(j);
                 String fromName = from.name;
                 StopTime[] fromStops = from.stop_times;
                 Log.i("test", "Testing to:" + toName + ", from:" + fromName);
@@ -127,6 +176,9 @@ public class HomeActivityUnitTest {
                 List<TimeResult> expects = new ArrayList<>();
                 for (int k = fromStops.length - 1; k >= 0; k--) {
                     assertEquals(fromStops[k].service_type, toStops[k].service_type);
+                    if (fromStops[k].isSatOnly() && !isSaturday) {
+                        continue;
+                    }
                     if (fromStops[k].time != null && toStops[k].time != null) {
                         expects.add(new TimeResult(fromStops[k].time, toStops[k].time));
                     }
