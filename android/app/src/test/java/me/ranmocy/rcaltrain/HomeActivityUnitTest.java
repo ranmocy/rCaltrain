@@ -1,8 +1,8 @@
 package me.ranmocy.rcaltrain;
 
 import android.util.Log;
+import android.widget.Adapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
@@ -27,6 +26,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+
+import me.ranmocy.rcaltrain.models.ScheduleResult;
+import me.ranmocy.rcaltrain.models.Station;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -85,6 +87,20 @@ public class HomeActivityUnitTest {
     }
 
     @Test
+    public void test_stationList() {
+        // check station name is in station list
+        for (int i = weekdayNB.size() - 1; i >= 0; i--) {
+            String stationName = weekdayNB.get(i).name;
+
+            arrivalInput.performClick();
+            clickStation(stationName);
+
+            departureInput.performClick();
+            clickStation(stationName);
+        }
+    }
+
+    @Test
     public void test_schedule_weekdayNB() {
         btnWeek.performClick();
 
@@ -94,19 +110,20 @@ public class HomeActivityUnitTest {
             StopTime[] toStops = to.stop_times;
             Log.i("test", "Testing to:" + toName);
 
-            arrivalInput.performClick();
-            clickStation(toName);
+            arrivalInput.setText(toName);
 
             for (int j = i - 1; j >= 0; j--) {
                 ScheduleRow from = weekdayNB.get(j);
                 String fromName = from.name;
                 StopTime[] fromStops = from.stop_times;
                 Log.i("test", "Testing to:" + toName + ", from:" + fromName);
+                System.out.printf("Testing to:%s, from:%s%n", toName, fromName);
 
-                departureInput.performClick();
-                clickStation(fromName);
+                departureInput.setText(fromName);
+                activity.reschedule();
 
-                if (fromStops.length != toStops.length) throw new AssertionError();
+                assertEquals(fromStops.length, toStops.length);
+
                 List<TimeResult> expects = new ArrayList<>();
                 for (int k = fromStops.length - 1; k >= 0; k--) {
                     assertEquals(fromStops[k].service_type, toStops[k].service_type);
@@ -132,18 +149,26 @@ public class HomeActivityUnitTest {
                 ListAdapter resultsAdapter = results.getAdapter();
                 for (int l = expects.size() - 1; l >= 0; l--) {
                     TimeResult expect = expects.get(l);
-                    LinearLayout itemView = (LinearLayout) resultsAdapter.getView(l, null/*convertView*/, null/*parent*/);
-                    assertEquals(3, itemView.getChildCount());
-                    assertEquals(expect.departureDisplay, ((TextView) itemView.getChildAt(0)).getText());
-                    assertEquals(expect.arrivalDisplay, ((TextView) itemView.getChildAt(2)).getText());
+                    ScheduleResult result = (ScheduleResult) resultsAdapter.getItem(l);
+                    assertEquals(expect.departureDisplay, result.getDepartureTimeString());
+                    assertEquals(expect.arrivalDisplay, result.getArrivalTimeString());
                 }
             }
         }
     }
 
     private void clickStation(String station) {
-        Shadows.shadowOf(ShadowAlertDialogV7.getLatestAlertDialog().getListView())
-                .clickFirstItemContainingText(station);
+//        Shadows.shadowOf(ShadowAlertDialogV7.getLatestAlertDialog().getListView()).clickFirstItemContainingText(station);
+        ShadowAlertDialogV7 shadowAlertDialog = ShadowAlertDialogV7.getLatestShadowAlertDialog();
+        Adapter adapter = shadowAlertDialog.getAdapter();
+        for (int l = adapter.getCount() - 1; l >= 0; l--) {
+            Station item = (Station) adapter.getItem(l);
+            if (station.equals(item.getName())) {
+                shadowAlertDialog.getShadowListView().performItemClick(l);
+                return;
+            }
+        }
+        throw new AssertionError("Can't find station:" + station);
     }
 
     private static final class TimeResult {
