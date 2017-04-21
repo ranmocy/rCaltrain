@@ -11,7 +11,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -39,43 +38,7 @@ import static junit.framework.Assert.assertEquals;
 @Config(constants = BuildConfig.class, shadows = {ShadowAlertDialogV7.class})
 public class HomeActivityUnitTest {
 
-    private static Gson gson;
-    private static List<ScheduleRow> weekdayNB;
-    private static List<ScheduleRow> weekdaySB;
-    private static List<ScheduleRow> weekendNB;
-    private static List<ScheduleRow> weekendSB;
-
-    @BeforeClass
-    public static void loadData() {
-        gson = new Gson();
-        weekdayNB = getData("weekday_nb_tt.json");
-        weekdaySB = getData("weekday_sb_tt.json");
-        weekendNB = getData("weekend_nb_tt.json");
-        weekendSB = getData("weekend_sb_tt.json");
-    }
-
-    private static List<ScheduleRow> getData(String filename) {
-        InputStream inputStream = HomeActivityUnitTest.class.getClassLoader().getResourceAsStream(filename);
-        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-        String result = s.hasNext() ? s.next() : "";
-
-        return gson.fromJson(result, new TypeToken<Collection<ScheduleRow>>() {}.getType());
-    }
-
-    private static final class ScheduleRow {
-        private String name = null;
-        private StopTime[] stop_times = null;
-    }
-
-    private static final class StopTime {
-        private String service_type = null;
-        private String time = null;
-
-        boolean isSatOnly() {
-            return "SatOnly".equals(service_type);
-        }
-    }
-
+    private Gson gson;
 
     private HomeActivity activity;
     private Button btnWeek;
@@ -87,6 +50,8 @@ public class HomeActivityUnitTest {
 
     @Before
     public void setup() {
+        gson = new Gson();
+
         activity = Robolectric.setupActivity(HomeActivity.class);
         btnWeek = (Button) activity.findViewById(R.id.btn_week);
         btnSat = (Button) activity.findViewById(R.id.btn_sat);
@@ -98,46 +63,46 @@ public class HomeActivityUnitTest {
 
     @Test
     public void test_stationList() {
-        testStationList(weekdayNB);
-        testStationList(weekdaySB);
-        testStationList(weekendNB);
-        testStationList(weekendSB);
+        testStationList(getData("weekday_nb_tt.json"));
+        testStationList(getData("weekday_sb_tt.json"));
+        testStationList(getData("weekend_nb_tt.json"));
+        testStationList(getData("weekend_sb_tt.json"));
     }
 
     @Test
     public void test_schedule_weekdayNB() {
         btnWeek.performClick();
-        testSchedule(weekdayNB, false);
+        testSchedule(getData("weekday_nb_tt.json"), false);
     }
 
     @Test
     public void test_schedule_weekdaySB() {
         btnWeek.performClick();
-        testSchedule(weekdaySB, false);
+        testSchedule(getData("weekday_sb_tt.json"), false);
     }
 
     @Test
     public void test_schedule_saturdayNB() {
         btnSat.performClick();
-        testSchedule(weekendNB, true);
+        testSchedule(getData("weekend_nb_tt.json"), true);
     }
 
     @Test
     public void test_schedule_saturdaySB() {
         btnSat.performClick();
-        testSchedule(weekendSB, true);
+        testSchedule(getData("weekend_sb_tt.json"), true);
     }
 
     @Test
     public void test_schedule_sundayNB() {
         btnSun.performClick();
-        testSchedule(weekendNB, false);
+        testSchedule(getData("weekend_nb_tt.json"), false);
     }
 
     @Test
     public void test_schedule_sundaySB() {
         btnSun.performClick();
-        testSchedule(weekendSB, false);
+        testSchedule(getData("weekend_sb_tt.json"), false);
     }
 
     private void testStationList(List<ScheduleRow> schedules) {
@@ -221,6 +186,28 @@ public class HomeActivityUnitTest {
             }
         }
         throw new AssertionError("Can't find station:" + station);
+    }
+
+    private List<ScheduleRow> getData(String filename) {
+        InputStream inputStream = HomeActivityUnitTest.class.getClassLoader().getResourceAsStream(filename);
+        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+        String result = s.hasNext() ? s.next() : "";
+
+        return gson.fromJson(result, new TypeToken<Collection<ScheduleRow>>() {}.getType());
+    }
+
+    private static final class ScheduleRow {
+        private String name = null;
+        private StopTime[] stop_times = null;
+    }
+
+    private static final class StopTime {
+        private String service_type = null;
+        private String time = null;
+
+        boolean isSatOnly() {
+            return "SatOnly".equals(service_type);
+        }
     }
 
     private static final class TimeResult {
