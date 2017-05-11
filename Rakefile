@@ -612,6 +612,7 @@ task :publish do
     run("git add .")
     run("git commit -m 'Updated at #{Time.now}.'")
     run("git push origin gh-pages:gh-pages")
+    run("firebase deploy")
   ensure
     run("git checkout master")
   end

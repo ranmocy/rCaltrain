@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "CNAME",
+      "Gemfile",
+      "Gemfile.lock",
+      "LICENSE",
+      "Rakefile",
+      "README.md",
+      "firebase.json",
+      "package.json",
+      "android/**",
+      "design/**",
+      "gtfs/**",
+      "ios/**",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
