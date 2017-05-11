@@ -2,6 +2,7 @@ package me.ranmocy.rcaltrain;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -165,7 +166,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 .show();
     }
 
-    private void reschedule() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    void reschedule() {
         String departure = departureView.getText().toString();
         String destination = arrivalView.getText().toString();
 
