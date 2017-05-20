@@ -20,8 +20,8 @@ class Station private constructor(val name: String) {
             return station
         }
 
-        fun getStation(name: String): Station {
-            return NAME_MAP[name]!!
+        fun getStation(name: String): Station? {
+            return NAME_MAP[name]
         }
 
         fun getStation(id: Int): Station {

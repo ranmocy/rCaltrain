@@ -17,11 +17,11 @@ class Preferences(context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences(PREFERENCES_NAMESPACE, Context.MODE_PRIVATE)
 
     var lastDepartureStationName: String
-        get() = preferences.getString(LAST_DEPARTURE_STATION_NAME, null)
+        get() = preferences.getString(LAST_DEPARTURE_STATION_NAME, "")
         set(stationName) = preferences.edit().putString(LAST_DEPARTURE_STATION_NAME, stationName).apply()
 
     var lastDestinationStationName: String
-        get() = preferences.getString(LAST_DESTINATION_STATION_NAME, null)
+        get() = preferences.getString(LAST_DESTINATION_STATION_NAME, "")
         set(stationName) = preferences.edit().putString(LAST_DESTINATION_STATION_NAME, stationName).apply()
 
     var lastScheduleType: ScheduleType
