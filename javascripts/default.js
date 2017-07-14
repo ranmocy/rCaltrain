@@ -440,7 +440,7 @@
           if (!check) {
             var $item = createElement('div', {className: "test_result_item"});
             msg.split("\n").forEach(function(line) {
-              $item.appendChild($createElement('div', {textContent: line}));
+              $item.appendChild(createElement('div', {textContent: line}));
             });
             $test_result.appendChild($item);
           }
