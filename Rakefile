@@ -357,13 +357,6 @@ task :prepare_data do
         warn "Drop outdated service #{service.service_id} ends at #{service.end_date}." if service.end_date < now_date
         service.end_date >= now_date
       }
-      .each { |service|
-        # Weekday should be available all together or none of them. If not, check data.
-        weekday_sum = [:monday, :tuesday, :wednesday, :thursday, :friday].inject(0) { |sum, day| sum + service[day]}
-        unless [0, 5].include? weekday_sum
-          require 'pry'; binding.pry
-        end
-      }
       .group_by(&:service_id)
       .mapHash { |service_id, items|
         if items.size != 1
@@ -371,6 +364,26 @@ task :prepare_data do
         end
         item = items[0]
         weekday_sum = [:monday, :tuesday, :wednesday, :thursday, :friday].inject(0) { |sum, day| sum + item[day]}
+        # Weekday should be available all together or none of them. If not, check data.
+        unless [0, 5].include? weekday_sum
+          require 'pry'; binding.pry
+        end
+        # schedule should match their name
+        if service_id.match(/weekday/i)
+          unless weekday_sum == 5 and item.saturday != 1 and item.sunday != 1
+            require 'pry'; binding.pry
+          end
+        end
+        if service_id.match(/saturday/i)
+          unless weekday_sum == 0 and item.saturday == 1 and item.sunday != 1
+            require 'pry'; binding.pry
+          end
+        end
+        if service_id.match(/sunday/i)
+          unless weekday_sum == 0 and item.saturday != 1 and item.sunday == 1
+            require 'pry'; binding.pry
+          end
+        end
         {
           weekday: weekday_sum == 5,
           saturday: item.saturday == 1,
