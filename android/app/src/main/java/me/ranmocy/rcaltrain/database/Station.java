@@ -7,6 +7,11 @@ import android.arch.persistence.room.PrimaryKey;
 @Entity(tableName = "stations")
 public final class Station {
 
+    public Station(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @PrimaryKey
     @ColumnInfo(name = "id")
     public int id;

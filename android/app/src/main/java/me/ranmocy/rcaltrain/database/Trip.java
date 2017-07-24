@@ -10,6 +10,11 @@ import android.arch.persistence.room.PrimaryKey;
 })
 public final class Trip {
 
+    public Trip(String id, String serviceId) {
+        this.id = id;
+        this.serviceId = serviceId;
+    }
+
     @PrimaryKey
     @ColumnInfo(name = "id")
     public String id;

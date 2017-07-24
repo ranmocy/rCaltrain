@@ -13,6 +13,13 @@ import me.ranmocy.rcaltrain.models.DayTime;
 })
 public final class Stop {
 
+    public Stop(String tripId, int sequence, int stationId, DayTime time) {
+        this.tripId = tripId;
+        this.sequence = sequence;
+        this.stationId = stationId;
+        this.time = time;
+    }
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     public int id;

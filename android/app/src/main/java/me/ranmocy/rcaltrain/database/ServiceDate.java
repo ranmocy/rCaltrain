@@ -5,7 +5,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
 
-import java.util.Date;
+import java.util.Calendar;
 
 /**
  * Date exceptions for {@link Service}.
@@ -15,6 +15,12 @@ import java.util.Date;
 })
 public final class ServiceDate {
 
+    public ServiceDate(String serviceId, Calendar date, int type) {
+        this.serviceId = serviceId;
+        this.date = date;
+        this.type = type;
+    }
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     public int id;
@@ -23,7 +29,7 @@ public final class ServiceDate {
     public String serviceId;
 
     @ColumnInfo(name = "date")
-    public Date date;
+    public Calendar date;
 
     @ColumnInfo(name = "type")
     public int type;

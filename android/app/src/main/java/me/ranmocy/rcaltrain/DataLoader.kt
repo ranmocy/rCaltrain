@@ -4,6 +4,10 @@ import android.content.Context
 import android.content.res.XmlResourceParser
 import android.support.annotation.XmlRes
 import android.util.Log
+import me.ranmocy.rcaltrain.database.ScheduleDatabase
+import me.ranmocy.rcaltrain.database.ServiceDate
+import me.ranmocy.rcaltrain.database.Stop
+import me.ranmocy.rcaltrain.database.Trip
 import me.ranmocy.rcaltrain.models.DayTime
 import me.ranmocy.rcaltrain.models.Service
 import me.ranmocy.rcaltrain.models.Station
@@ -11,6 +15,7 @@ import org.xmlpull.v1.XmlPullParser.*
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.util.*
+import kotlin.collections.ArrayList
 
 /** Loader loads scheduling data from xml files. */
 class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
@@ -23,7 +28,9 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * "San Francisco" => [70021, 70022]
      */
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun loadStops() {
+    private fun loadStops() : List<me.ranmocy.rcaltrain.database.Station> {
+        val list = ArrayList<me.ranmocy.rcaltrain.database.Station>()
+
         startDoc()
         startTag(MAP)
         while (isTag(KEY)) {
@@ -39,9 +46,12 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             endTag(VALUE)
 
             Station.addStation(stationName, stationIds)
+            stationIds.mapTo(list) { me.ranmocy.rcaltrain.database.Station(it, stationName) }
         }
         endTag(MAP)
         endDoc()
+
+        return list
     }
 
     /**
@@ -50,7 +60,9 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * CT-16APR-Caltrain-Weekday-01 => {weekday: false, saturday: true, sunday: false, start_date: 20160404, end_date: 20190331}
      */
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadCalendar() {
+    private fun loadCalendar() : List<me.ranmocy.rcaltrain.database.Service> {
+        val list = ArrayList<me.ranmocy.rcaltrain.database.Service>()
+
         startDoc()
         startTag(MAP)
         while (isTag(KEY)) {
@@ -72,9 +84,12 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             endTag(VALUE)
 
             Service.addService(serviceId, weekday, saturday, sunday, startDate, endDate)
+            list.add(me.ranmocy.rcaltrain.database.Service(serviceId, weekday, saturday, sunday, startDate, endDate))
         }
         endTag(MAP)
         endDoc()
+
+        return list
     }
 
     /**
@@ -83,7 +98,9 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * CT-16APR-Caltrain-Weekday-01 => [[20160530,2]]
      */
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadCalendarDates() {
+    private fun loadCalendarDates() : List<ServiceDate> {
+        val list = ArrayList<ServiceDate>()
+
         startDoc()
         startTag(MAP)
         while (isTag(KEY)) {
@@ -104,6 +121,7 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
                 } else {
                     throw RuntimeException("Unexpected exception dates type:" + type)
                 }
+                list.add(ServiceDate(serviceId, date, type))
                 endTag(ARRAY)
                 endTag(ELEM)
             }
@@ -112,6 +130,8 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
         }
         endTag(MAP)
         endDoc()
+
+        return list
     }
 
     /**
@@ -119,8 +139,11 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * { route_id => { service_id => { trip_id => [[stop_id, arrival_time/departure_time(in seconds)]] } } }
      * { "Bullet" => { "CT-14OCT-XXX" => { "650770-CT-14OCT-XXX" => [[70012, 29700], ...] } } }
      */
+    data class Routes(val trips: ArrayList<Trip>, var stops: ArrayList<Stop>)
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadRoutes() {
+    private fun loadRoutes() : Routes {
+        val result = Routes(ArrayList<Trip>(), ArrayList<Stop>())
+
         startDoc()
         startTag(MAP)
         while (isTag(KEY)) {
@@ -137,9 +160,11 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
                 while (isTag(KEY)) {
                     val tripId = key
                     val trip = service.addTrip(tripId)
+                    result.trips.add(Trip(tripId, serviceId))
 
                     startTag(VALUE)
                     startTag(ARRAY)
+                    var sequence = 0
                     while (isTag(ELEM)) {
                         startTag(ELEM)
                         startTag(ARRAY)
@@ -147,6 +172,8 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
                         val station = Station.getStation(stationId)
                         val stopTime = getTime(ELEM)
                         trip.addStop(station, stopTime)
+                        result.stops.add(Stop(tripId, sequence++, stationId, stopTime))
+
                         endTag(ARRAY)
                         endTag(ELEM)
                     }
@@ -161,6 +188,8 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
         }
         endTag(MAP)
         endDoc()
+
+        return result
     }
 
     @Throws(XmlPullParserException::class)
@@ -254,10 +283,12 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
 
             Log.i(TAG, "Loading data.")
             try {
-                DataLoader(context, R.xml.stops).loadStops()
-                DataLoader(context, R.xml.calendar).loadCalendar()
-                DataLoader(context, R.xml.calendar_dates).loadCalendarDates()
-                DataLoader(context, R.xml.routes).loadRoutes()
+                val stations = DataLoader(context, R.xml.stops).loadStops()
+                val services = DataLoader(context, R.xml.calendar).loadCalendar()
+                val serviceDates = DataLoader(context, R.xml.calendar_dates).loadCalendarDates()
+                val (trips, stops) = DataLoader(context, R.xml.routes).loadRoutes()
+                ScheduleDatabase.get(context)
+                        .updateData(stations, services, serviceDates, trips, stops)
             } catch (e: XmlPullParserException) {
                 // TODO: show dialog
                 throw RuntimeException(e)

@@ -2,10 +2,12 @@ package me.ranmocy.rcaltrain.database;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.support.annotation.IntDef;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import me.ranmocy.rcaltrain.models.DayTime;
@@ -25,11 +27,16 @@ public interface ScheduleDao {
     @interface ServiceType {
     }
 
-    @Query(QueriesKt.QUERY)
-    LiveData<List<ScheduleResult>> getResults(String from, String to, Date now, @ServiceType int serviceType);
-
     final class ScheduleResult {
         DayTime departureTime;
         DayTime arrivalTime;
     }
+
+    @Query(QueriesKt.QUERY)
+    LiveData<List<ScheduleResult>> getResults(
+            String from, String to, Calendar now, @ServiceType int serviceType);
+
+    @Insert
+    void insert(List<Station> stations, List<Service> services, List<ServiceDate> serviceDates,
+                ArrayList<Trip> trips, ArrayList<Stop> stops);
 }
