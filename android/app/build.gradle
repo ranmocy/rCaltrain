@@ -17,6 +17,14 @@ android {
         versionCode 4
         versionName "1.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+    }
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
     buildTypes {
         debug {
@@ -57,6 +65,7 @@ dependencies {
     annotationProcessor "android.arch.lifecycle:compiler:1.0.0-alpha5"
     compile "android.arch.persistence.room:runtime:1.0.0-alpha5"
     annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha5"
+    testCompile "android.arch.persistence.room:testing:1.0.0-alpha5"
 }
 
 apply plugin: 'com.google.gms.google-services'
