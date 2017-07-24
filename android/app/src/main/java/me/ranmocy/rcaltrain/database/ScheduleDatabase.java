@@ -6,7 +6,7 @@ import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
-@Database(version = 1, exportSchema = true, entities = {
+@Database(version = 1, entities = {
         Service.class,
         ServiceDate.class,
         Station.class,
