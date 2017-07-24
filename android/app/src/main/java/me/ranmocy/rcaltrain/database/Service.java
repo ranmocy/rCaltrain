@@ -10,8 +10,8 @@ import java.util.Date;
 public final class Service {
 
     @PrimaryKey
-    @ColumnInfo(name = "service_id")
-    public String serviceId;
+    @ColumnInfo(name = "id")
+    public String id;
 
     @ColumnInfo(name = "weekday")
     public boolean weekday;

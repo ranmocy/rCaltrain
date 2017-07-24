@@ -6,13 +6,13 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
 
 @Entity(tableName = "trips", foreignKeys = {
-        @ForeignKey(entity = Service.class, parentColumns = "service_id", childColumns = "service_id")
+        @ForeignKey(entity = Service.class, parentColumns = "id", childColumns = "service_id")
 })
 public final class Trip {
 
     @PrimaryKey
-    @ColumnInfo(name = "trip_id")
-    public String tripId;
+    @ColumnInfo(name = "id")
+    public String id;
 
     @ColumnInfo(name = "service_id", index = true)
     public String serviceId;

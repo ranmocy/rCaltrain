@@ -8,9 +8,9 @@ import android.arch.persistence.room.PrimaryKey;
 public final class Station {
 
     @PrimaryKey
-    @ColumnInfo(name = "station_id")
-    public int stationId;
+    @ColumnInfo(name = "id")
+    public int id;
 
-    @ColumnInfo(name = "station_name")
-    public String stationName;
+    @ColumnInfo(name = "name")
+    public String name;
 }

@@ -2,15 +2,15 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a0aa408d4b87adf549dc4bd5a2289ef5",
+    "identityHash": "fa50f57e619a5ce44ba277a47bf03b63",
     "entities": [
       {
         "tableName": "services",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`service_id` TEXT, `weekday` INTEGER, `saturday` INTEGER, `sunday` INTEGER, `start_date` INTEGER, `end_date` INTEGER, PRIMARY KEY(`service_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT, `weekday` INTEGER, `saturday` INTEGER, `sunday` INTEGER, `start_date` INTEGER, `end_date` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
-            "fieldPath": "serviceId",
-            "columnName": "service_id",
+            "fieldPath": "id",
+            "columnName": "id",
             "affinity": "TEXT"
           },
           {
@@ -41,7 +41,7 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "service_id"
+            "id"
           ],
           "autoGenerate": false
         },
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "service_dates",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `service_id` TEXT, `date` INTEGER, `type` INTEGER, FOREIGN KEY(`service_id`) REFERENCES `services`(`service_id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `service_id` TEXT, `date` INTEGER, `type` INTEGER, FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -98,29 +98,29 @@
               "service_id"
             ],
             "referencedColumns": [
-              "service_id"
+              "id"
             ]
           }
         ]
       },
       {
         "tableName": "stations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`station_id` INTEGER, `station_name` TEXT, PRIMARY KEY(`station_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `name` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
-            "fieldPath": "stationId",
-            "columnName": "station_id",
+            "fieldPath": "id",
+            "columnName": "id",
             "affinity": "INTEGER"
           },
           {
-            "fieldPath": "stationName",
-            "columnName": "station_name",
+            "fieldPath": "name",
+            "columnName": "name",
             "affinity": "TEXT"
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "station_id"
+            "id"
           ],
           "autoGenerate": false
         },
@@ -129,7 +129,7 @@
       },
       {
         "tableName": "stops",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `trip_id` TEXT, `index` INTEGER, `station_id` INTEGER, `time` INTEGER, FOREIGN KEY(`trip_id`) REFERENCES `trips`(`trip_id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`station_id`) REFERENCES `stations`(`station_id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `trip_id` TEXT, `sequence` INTEGER, `station_id` INTEGER, `time` INTEGER, FOREIGN KEY(`trip_id`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`station_id`) REFERENCES `stations`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -142,8 +142,8 @@
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "index",
-            "columnName": "index",
+            "fieldPath": "sequence",
+            "columnName": "sequence",
             "affinity": "INTEGER"
           },
           {
@@ -190,7 +190,7 @@
               "trip_id"
             ],
             "referencedColumns": [
-              "trip_id"
+              "id"
             ]
           },
           {
@@ -201,18 +201,18 @@
               "station_id"
             ],
             "referencedColumns": [
-              "station_id"
+              "id"
             ]
           }
         ]
       },
       {
         "tableName": "trips",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`trip_id` TEXT, `service_id` TEXT, PRIMARY KEY(`trip_id`), FOREIGN KEY(`service_id`) REFERENCES `services`(`service_id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT, `service_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
-            "fieldPath": "tripId",
-            "columnName": "trip_id",
+            "fieldPath": "id",
+            "columnName": "id",
             "affinity": "TEXT"
           },
           {
@@ -223,7 +223,7 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "trip_id"
+            "id"
           ],
           "autoGenerate": false
         },
@@ -246,7 +246,7 @@
               "service_id"
             ],
             "referencedColumns": [
-              "service_id"
+              "id"
             ]
           }
         ]
@@ -254,7 +254,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"a0aa408d4b87adf549dc4bd5a2289ef5\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"fa50f57e619a5ce44ba277a47bf03b63\")"
     ]
   }
 }

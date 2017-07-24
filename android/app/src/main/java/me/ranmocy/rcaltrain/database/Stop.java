@@ -8,8 +8,8 @@ import android.arch.persistence.room.PrimaryKey;
 import me.ranmocy.rcaltrain.models.DayTime;
 
 @Entity(tableName = "stops", foreignKeys = {
-        @ForeignKey(entity = Trip.class, parentColumns = "trip_id", childColumns = "trip_id"),
-        @ForeignKey(entity = Station.class, parentColumns = "station_id", childColumns = "station_id")
+        @ForeignKey(entity = Trip.class, parentColumns = "id", childColumns = "trip_id"),
+        @ForeignKey(entity = Station.class, parentColumns = "id", childColumns = "station_id")
 })
 public final class Stop {
 
@@ -20,8 +20,8 @@ public final class Stop {
     @ColumnInfo(name = "trip_id", index = true)
     public String tripId;
 
-    @ColumnInfo(name = "index")
-    public int index;
+    @ColumnInfo(name = "sequence")
+    public int sequence;
 
     @ColumnInfo(name = "station_id", index = true)
     public int stationId;

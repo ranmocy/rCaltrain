@@ -11,7 +11,7 @@ import java.util.Date;
  * Date exceptions for {@link Service}.
  */
 @Entity(tableName = "service_dates", foreignKeys = {
-        @ForeignKey(entity = Service.class, parentColumns = "service_id", childColumns = "service_id")
+        @ForeignKey(entity = Service.class, parentColumns = "id", childColumns = "service_id")
 })
 public final class ServiceDate {
 
