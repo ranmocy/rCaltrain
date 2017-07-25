@@ -1,6 +1,7 @@
 package me.ranmocy.rcaltrain.database;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
@@ -9,7 +10,6 @@ import android.content.Context;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -46,11 +46,28 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     }
 
     public void updateData(
-            @NotNull List<Station> stations,
-            @NotNull List<Service> services,
-            @NotNull List<ServiceDate> serviceDates,
-            @NotNull ArrayList<Trip> trips,
-            @NotNull ArrayList<Stop> stops) {
-        scheduleDao().insert(stations, services, serviceDates, trips, stops);
+            @NotNull final List<Station> stations,
+            @NotNull final List<Service> services,
+            @NotNull final List<ServiceDate> serviceDates,
+            @NotNull final List<Trip> trips,
+            @NotNull final List<Stop> stops) {
+        runInTransaction(new Runnable() {
+            @Override
+            public void run() {
+                SupportSQLiteDatabase db = getOpenHelper().getWritableDatabase();
+                db.beginTransaction();
+                try {
+                    db.delete("stations", null, null);
+                    db.delete("services", null, null);
+                    db.delete("service_dates", null, null);
+                    db.delete("trips", null, null);
+                    db.delete("stops", null, null);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                scheduleDao().insert(stations, services, serviceDates, trips, stops);
+            }
+        });
     }
 }

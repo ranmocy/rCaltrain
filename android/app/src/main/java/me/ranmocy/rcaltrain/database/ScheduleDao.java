@@ -6,7 +6,6 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.support.annotation.IntDef;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -37,6 +36,7 @@ public interface ScheduleDao {
             String from, String to, Calendar now, @ServiceType int serviceType);
 
     @Insert
-    void insert(List<Station> stations, List<Service> services, List<ServiceDate> serviceDates,
-                ArrayList<Trip> trips, ArrayList<Stop> stops);
+    void insert(
+            List<Station> stations, List<Service> services, List<ServiceDate> serviceDates,
+            List<Trip> trips, List<Stop> stops);
 }
