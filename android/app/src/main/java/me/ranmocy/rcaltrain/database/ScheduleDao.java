@@ -34,12 +34,12 @@ public interface ScheduleDao {
 
     @Query(QueriesKt.QUERY)
     LiveData<List<ScheduleResult>> getResults(
-            String from, String to, Calendar now, @ServiceType int serviceType);
+            String from, String to, Calendar today, @ServiceType int serviceType);
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     @Query(QueriesKt.QUERY)
     List<ScheduleResult> getResultsSync(
-            String from, String to, Calendar now, @ServiceType int serviceType);
+            String from, String to, Calendar today, @ServiceType int serviceType);
 
     @Insert
     void insert(
