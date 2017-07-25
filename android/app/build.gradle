@@ -10,12 +10,19 @@ android {
     repositories {
         maven { url 'http://repo1.maven.org/maven2' }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     defaultConfig {
         applicationId "me.ranmocy.rcaltrain"
         minSdkVersion 15
         targetSdkVersion 25
         versionCode 4
         versionName "1.4"
+        jackOptions {
+            enabled true
+        }
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
