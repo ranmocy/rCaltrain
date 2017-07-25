@@ -6,7 +6,7 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
 
 @Entity(tableName = "trips", foreignKeys = {
-        @ForeignKey(entity = Service.class, parentColumns = "id", childColumns = "service_id")
+        @ForeignKey(entity = Service.class, parentColumns = "id", childColumns = "service_id", onDelete = ForeignKey.CASCADE)
 })
 public final class Trip {
 
