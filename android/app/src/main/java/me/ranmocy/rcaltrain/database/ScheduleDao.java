@@ -5,6 +5,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.support.annotation.IntDef;
+import android.support.annotation.VisibleForTesting;
 
 import java.util.Calendar;
 import java.util.List;
@@ -33,6 +34,11 @@ public interface ScheduleDao {
 
     @Query(QueriesKt.QUERY)
     LiveData<List<ScheduleResult>> getResults(
+            String from, String to, Calendar now, @ServiceType int serviceType);
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    @Query(QueriesKt.QUERY)
+    List<ScheduleResult> getResultsSync(
             String from, String to, Calendar now, @ServiceType int serviceType);
 
     @Insert
