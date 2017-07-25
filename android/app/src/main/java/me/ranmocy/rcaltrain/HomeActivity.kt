@@ -12,10 +12,13 @@ import android.widget.ListView
 import android.widget.RadioGroup
 import android.widget.TextView
 import com.google.firebase.analytics.FirebaseAnalytics
+import me.ranmocy.rcaltrain.database.ScheduleDao
+import me.ranmocy.rcaltrain.database.ScheduleDatabase
 import me.ranmocy.rcaltrain.models.ScheduleType
 import me.ranmocy.rcaltrain.models.Station
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
 import me.ranmocy.rcaltrain.ui.StationListAdapter
+import java.util.*
 
 class HomeActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -55,6 +58,10 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener {
 
         // Init schedule
         reschedule()
+
+        ScheduleDatabase.get(this)
+                .getResults("San Fransisco", "22nd St", Calendar.getInstance(), ScheduleDao.SERVICE_WEEKDAY)
+                .observeForever { Log.i("DATABASE", "Fetched") }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -143,6 +150,9 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener {
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun reschedule() {
+        if (!DataLoader.isLoaded()) {
+            return
+        }
         val departure = departureView.text.toString()
         val destination = arrivalView.text.toString()
 

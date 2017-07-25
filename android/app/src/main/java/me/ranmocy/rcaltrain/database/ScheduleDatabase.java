@@ -7,6 +7,7 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +68,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
                     db.endTransaction();
                 }
                 scheduleDao().insert(stations, services, serviceDates, trips, stops);
+                Log.i("DATABASE", "data updated");
             }
         });
     }
