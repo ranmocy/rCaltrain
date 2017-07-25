@@ -4,8 +4,8 @@ import me.ranmocy.rcaltrain.database.ScheduleDao.*
 
 private const val FROM_STATION_ID = "SELECT id FROM stations WHERE name = :from"
 private const val TO_STATION_ID = "SELECT id FROM stations WHERE name = :to"
-private const val FROM_SEQUENCE = "SELECT sequence FROM stops WHERE trip_id = trips.id AND station_id in ($FROM_STATION_ID) LIMIT 1"
-private const val TO_SEQUENCE = "SELECT sequence FROM stops WHERE trip_id = trips.id AND station_id in ($TO_STATION_ID) LIMIT 1"
+private const val FROM_SEQUENCE = "SELECT sequence FROM stops WHERE trip_id = trips.id AND station_id in ($FROM_STATION_ID)"
+private const val TO_SEQUENCE = "SELECT sequence FROM stops WHERE trip_id = trips.id AND station_id in ($TO_STATION_ID)"
 
 // WITH was introduced in sqlite 3.8.3: https://stackoverflow.com/questions/24036310/error-using-sql-with-clause
 // sqlite versions: https://stackoverflow.com/questions/2421189/version-of-sqlite-used-in-android
@@ -33,4 +33,5 @@ SELECT f.time AS departureTime, t.time AS arrivalTime
                    AND (id NOT IN (SELECT service_id FROM service_dates WHERE date = :today AND type = 2)
                         AND :today BETWEEN start_date AND end_date
                         OR id IN (SELECT service_id FROM service_dates WHERE date = :today AND type = 1))))
+ORDER BY departureTime
 """

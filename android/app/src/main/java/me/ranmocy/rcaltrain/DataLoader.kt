@@ -2,6 +2,7 @@ package me.ranmocy.rcaltrain
 
 import android.content.Context
 import android.content.res.XmlResourceParser
+import android.support.annotation.VisibleForTesting
 import android.support.annotation.XmlRes
 import android.util.Log
 import me.ranmocy.rcaltrain.database.ScheduleDatabase
@@ -279,12 +280,17 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             return loaded
         }
 
+        @Synchronized
         fun loadDataIfNot(context: Context) {
             if (loaded) {
                 Log.i(TAG, "Data have loaded, skip.")
                 return
             }
+            loadDataAlways(context)
+        }
 
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        fun loadDataAlways(context: Context) {
             Log.i(TAG, "Loading data.")
             try {
                 val stations = DataLoader(context, R.xml.stops).loadStops()

@@ -3,6 +3,7 @@ package me.ranmocy.rcaltrain.database;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,13 +18,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.models.DayTime;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
@@ -58,44 +59,119 @@ public class ScheduleDatabaseTest {
     private static final DayTime start = new DayTime(100);
     private static final DayTime end = new DayTime(200);
     private static final String SAN_FRANCISCO = "San Francisco";
-    private static final String STREET = "22nd St";
+    private static final String STREET22 = "22nd St";
 
     private Calendar now;
     private ScheduleDatabase db;
 
     @Before
     public void setup() {
-        DataLoader.Companion.loadDataIfNot(RuntimeEnvironment.application);
         now = Calendar.getInstance();
         db = ScheduleDatabase.get(RuntimeEnvironment.application);
     }
 
-    @Test
-    public void test_sqlite_version() {
-        String s = db.getOpenHelper().getReadableDatabase()
-                .compileStatement("SELECT sqlite_version();").simpleQueryForString();
-        String[] split = s.split(".");
-        assertEquals(3, split.length);
-        int major = Integer.parseInt(split[0]);
-        int minor = Integer.parseInt(split[1]);
-        int build = Integer.parseInt(split[2]);
-        assertTrue(major == 3 && minor == 7 && build == 10);
+    @After
+    public void clean() {
+        db.close();
+        ShadowScheduleDatabase.reset();
     }
 
     @Test
-    public void test() {
+    public void test_sqlite_version() {
+        // Robolectric ships with SQLite 3.7.10
+        // Android 4.1(16) ships with 3.7.11
+        String s = db.getOpenHelper().getReadableDatabase()
+                .compileStatement("SELECT sqlite_version();").simpleQueryForString();
+        String[] split = s.split("\\.");
+        assertThat(split.length).isEqualTo(3);
+        int major = Integer.parseInt(split[0]);
+        int minor = Integer.parseInt(split[1]);
+        int build = Integer.parseInt(split[2]);
+        assertThat(major == 3 && minor == 7 && build == 10).isTrue();
+    }
+
+    @Test
+    public void test_fakeData() {
         db.updateData(
-                Arrays.asList(new Station(123, SAN_FRANCISCO), new Station(321, STREET)),
+                Arrays.asList(new Station(123, SAN_FRANCISCO), new Station(321, STREET22)),
                 Collections.singletonList(new Service("s_1", true, false, false, now, now)),
-                Collections.<ServiceDate>emptyList(),
+                Collections.emptyList(),
                 Collections.singletonList(new Trip("t_1", "s_1")),
                 Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
 
-        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(SAN_FRANCISCO, STREET, now, ScheduleDao.SERVICE_WEEKDAY);
+        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
+                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_WEEKDAY);
 
-        assertEquals(1, results.size());
+        assertThat(results).hasSize(1);
         ScheduleDao.ScheduleResult result = results.get(0);
-        assertEquals(start.toSecondsSinceMidnight(), result.departureTime.toSecondsSinceMidnight());
-        assertEquals(end.toSecondsSinceMidnight(), result.arrivalTime.toSecondsSinceMidnight());
+        assertThat(result.departureTime.toSecondsSinceMidnight()).isEqualTo(start.toSecondsSinceMidnight());
+        assertThat(result.arrivalTime.toSecondsSinceMidnight()).isEqualTo(end.toSecondsSinceMidnight());
+    }
+
+    @Test
+    public void test_realData_weekday() {
+        now.clear();
+        now.set(2017, 6/*0-based*/, 24);
+        assertThat(Converters.calendarToLong(now)).isEqualTo(20170724);
+
+        // Even app would load it, we load again here to wait for result
+        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
+
+        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
+                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_WEEKDAY);
+
+        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
+                .containsExactly(455, 525, 605, 615, 635, 645, 659, 705, 715, 735,
+                        745, 759, 805, 815, 835, 845, 900, 1000, 1100, 1200, 1300,
+                        1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
+        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
+                .containsExactly(459, 529, 609, 619, 639, 651, 703, 710, 719, 739,
+                        751, 803, 810, 819, 839, 849, 905, 1004, 1104, 1204, 1304,
+                        1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+    }
+
+    @Test
+    public void test_realData_saturday() {
+        now.clear();
+        now.set(2017, 6/*0-based*/, 29);
+        assertThat(Converters.calendarToLong(now)).isEqualTo(20170729);
+
+        // Even app would load it, we load again here to wait for result
+        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
+
+        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
+                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_SATURDAY);
+
+        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
+                .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007,
+                        2137, 2251, 2405);
+        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
+                .containsExactly(811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011,
+                        2141, 2255, 2410);
+    }
+
+    @Test
+    public void test_realData_sunday() {
+        now.clear();
+        now.set(2017, 6/*0-based*/, 30);
+        assertThat(Converters.calendarToLong(now)).isEqualTo(20170730);
+
+        // Even app would load it, we load again here to wait for result
+        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
+
+        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
+                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_SUNDAY);
+
+        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
+                .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137);
+        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
+                .containsExactly(811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141);
+    }
+
+    private static int formatTime(DayTime dayTime) {
+        long seconds = dayTime.toSecondsSinceMidnight();
+        long hours = seconds / 60 / 60;
+        long minutes = seconds / 60 % 60;
+        return (int) (hours * 100 + minutes);
     }
 }
