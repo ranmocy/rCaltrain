@@ -15,15 +15,12 @@ import me.ranmocy.rcaltrain.models.DayTime;
 @Dao
 public interface ScheduleDao {
 
+    int SERVICE_NOW = 0;
     int SERVICE_WEEKDAY = 1;
     int SERVICE_SATURDAY = 2;
     int SERVICE_SUNDAY = 3;
 
-    @IntDef({
-            SERVICE_WEEKDAY,
-            SERVICE_SATURDAY,
-            SERVICE_SUNDAY
-    })
+    @IntDef({SERVICE_NOW, SERVICE_WEEKDAY, SERVICE_SATURDAY, SERVICE_SUNDAY})
     @interface ServiceType {
     }
 
@@ -34,12 +31,12 @@ public interface ScheduleDao {
 
     @Query(QueriesKt.QUERY)
     LiveData<List<ScheduleResult>> getResults(
-            String from, String to, Calendar today, @ServiceType int serviceType);
+            String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     @Query(QueriesKt.QUERY)
     List<ScheduleResult> getResultsSync(
-            String from, String to, Calendar today, @ServiceType int serviceType);
+            String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
 
     @Insert
     void insert(

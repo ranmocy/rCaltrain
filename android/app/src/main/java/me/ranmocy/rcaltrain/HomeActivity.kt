@@ -18,7 +18,6 @@ import me.ranmocy.rcaltrain.models.ScheduleType
 import me.ranmocy.rcaltrain.models.Station
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
 import me.ranmocy.rcaltrain.ui.StationListAdapter
-import java.util.*
 
 class HomeActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -180,7 +179,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         ScheduleDatabase.get(this)
-                .getResults(departure, destination, Calendar.getInstance(), ScheduleDao.SERVICE_WEEKDAY)
+                .getResults(departure, destination, ScheduleDao.SERVICE_WEEKDAY)
                 .observeForever { t -> Log.i("DATABASE", "Fetched:" + t!!.size) }
     }
 }

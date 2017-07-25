@@ -15,6 +15,7 @@ SELECT f.time AS departureTime, t.time AS arrivalTime
  WHERE f.station_id IN (SELECT id FROM stations WHERE name = :from)
    AND t.station_id IN (SELECT id FROM stations WHERE name = :to)
    AND f.trip_id = t.trip_id
+   AND (:now IS NULL OR departureTime >= :now)
    AND f.trip_id IN
        (SELECT id
           FROM trips

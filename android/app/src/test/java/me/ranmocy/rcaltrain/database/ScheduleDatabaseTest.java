@@ -61,12 +61,14 @@ public class ScheduleDatabaseTest {
     private static final String SAN_FRANCISCO = "San Francisco";
     private static final String STREET22 = "22nd St";
 
-    private Calendar now;
+    private Calendar today;
+    private DayTime now;
     private ScheduleDatabase db;
 
     @Before
     public void setup() {
-        now = Calendar.getInstance();
+        today = Calendar.getInstance();
+        now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
         db = ScheduleDatabase.get(RuntimeEnvironment.application);
     }
 
@@ -94,13 +96,13 @@ public class ScheduleDatabaseTest {
     public void test_fakeData() {
         db.updateData(
                 Arrays.asList(new Station(123, SAN_FRANCISCO), new Station(321, STREET22)),
-                Collections.singletonList(new Service("s_1", true, false, false, now, now)),
+                Collections.singletonList(new Service("s_1", true, false, false, today, today)),
                 Collections.emptyList(),
                 Collections.singletonList(new Trip("t_1", "s_1")),
                 Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
 
-        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
-                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_WEEKDAY);
+        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(results).hasSize(1);
         ScheduleDao.ScheduleResult result = results.get(0);
@@ -110,15 +112,15 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_realData_weekday() {
-        now.clear();
-        now.set(2017, 6/*0-based*/, 24);
-        assertThat(Converters.calendarToLong(now)).isEqualTo(20170724);
+        today.clear();
+        today.set(2017, 6/*0-based*/, 24);
+        assertThat(Converters.calendarToLong(today)).isEqualTo(20170724);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
-                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_WEEKDAY);
+        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
                 .containsExactly(455, 525, 605, 615, 635, 645, 659, 705, 715, 735,
@@ -132,15 +134,15 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_realData_saturday() {
-        now.clear();
-        now.set(2017, 6/*0-based*/, 29);
-        assertThat(Converters.calendarToLong(now)).isEqualTo(20170729);
+        today.clear();
+        today.set(2017, 6/*0-based*/, 29);
+        assertThat(Converters.calendarToLong(today)).isEqualTo(20170729);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
-                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_SATURDAY);
+        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SATURDAY, today, now);
 
         assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
                 .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007,
@@ -152,20 +154,40 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_realData_sunday() {
-        now.clear();
-        now.set(2017, 6/*0-based*/, 30);
-        assertThat(Converters.calendarToLong(now)).isEqualTo(20170730);
+        today.clear();
+        today.set(2017, 6/*0-based*/, 30);
+        assertThat(Converters.calendarToLong(today)).isEqualTo(20170730);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.scheduleDao().getResultsSync(
-                SAN_FRANCISCO, STREET22, now, ScheduleDao.SERVICE_SUNDAY);
+        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SUNDAY, today, now);
 
         assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
                 .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137);
         assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
                 .containsExactly(811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141);
+    }
+
+    @Test
+    public void test_realData_now() {
+        today.clear();
+        today.set(2017, 6/*0-based*/, 24);
+        assertThat(Converters.calendarToLong(today)).isEqualTo(20170724);
+
+        assertThat(now.toString()).isEqualTo("09:59");
+
+        // Even app would load it, we load again here to wait for result
+        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
+
+        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_NOW, today, now);
+
+        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
+                .containsExactly(1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
+        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
+                .containsExactly(1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
     }
 
     private static int formatTime(DayTime dayTime) {
