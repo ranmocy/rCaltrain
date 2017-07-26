@@ -5,24 +5,17 @@ android {
     signingConfigs {
         release
     }
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "25.0.3"
     repositories {
         maven { url 'http://repo1.maven.org/maven2' }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
     defaultConfig {
         applicationId "me.ranmocy.rcaltrain"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 4
         versionName "1.4"
-        jackOptions {
-            enabled true
-        }
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -50,9 +43,9 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.0.0'
+    compile 'com.android.support:design:26.0.0'
+    compile 'com.android.support:support-v4:26.0.0'
     compile 'com.google.firebase:firebase-core:9.0.0'
     compile 'com.google.firebase:firebase-analytics:9.0.0'
 
@@ -61,19 +54,19 @@ dependencies {
     testCompile 'com.google.code.gson:gson:2.8.0'
     testCompile "com.google.truth:truth:0.34"
 
-    androidTestCompile 'com.android.support:support-annotations:25.3.1'
+    androidTestCompile 'com.android.support:support-annotations:26.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile 'com.google.code.gson:gson:2.8.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
-    compile "android.arch.lifecycle:runtime:1.0.0-alpha5"
-    compile "android.arch.lifecycle:extensions:1.0.0-alpha5"
-    annotationProcessor "android.arch.lifecycle:compiler:1.0.0-alpha5"
-    compile "android.arch.persistence.room:runtime:1.0.0-alpha5"
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0-alpha5"
-    testCompile "android.arch.persistence.room:testing:1.0.0-alpha5"
+    compile "android.arch.lifecycle:runtime:$arch_version"
+    compile "android.arch.lifecycle:extensions:$arch_version"
+    annotationProcessor "android.arch.lifecycle:compiler:$arch_version"
+    compile "android.arch.persistence.room:runtime:$arch_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$arch_version"
+    testCompile "android.arch.persistence.room:testing:$arch_version"
 }
 
 apply plugin: 'com.google.gms.google-services'

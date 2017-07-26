@@ -66,21 +66,24 @@ public abstract class ScheduleDatabase extends RoomDatabase {
             @NotNull final List<ServiceDate> serviceDates,
             @NotNull final List<Trip> trips,
             @NotNull final List<Stop> stops) {
-        runInTransaction(() -> {
-            SupportSQLiteDatabase db = getOpenHelper().getWritableDatabase();
-            db.beginTransaction();
-            try {
-                db.delete("stations", null, null);
-                db.delete("services", null, null);
-                db.delete("service_dates", null, null);
-                db.delete("trips", null, null);
-                db.delete("stops", null, null);
-                db.setTransactionSuccessful();
-            } finally {
-                db.endTransaction();
+        runInTransaction(new Runnable() {
+            @Override
+            public void run() {
+                SupportSQLiteDatabase db = getOpenHelper().getWritableDatabase();
+                db.beginTransaction();
+                try {
+                    db.delete("stations", null, null);
+                    db.delete("services", null, null);
+                    db.delete("service_dates", null, null);
+                    db.delete("trips", null, null);
+                    db.delete("stops", null, null);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                scheduleDao().insert(stations, services, serviceDates, trips, stops);
+                Log.i("DATABASE", "data updated");
             }
-            scheduleDao().insert(stations, services, serviceDates, trips, stops);
-            Log.i("DATABASE", "data updated");
         });
     }
 

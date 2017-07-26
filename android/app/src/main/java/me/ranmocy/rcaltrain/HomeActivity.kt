@@ -2,7 +2,6 @@ package me.ranmocy.rcaltrain
 
 import android.arch.lifecycle.LifecycleRegistry
 import android.arch.lifecycle.LifecycleRegistryOwner
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.annotation.VisibleForTesting
 import android.support.v7.app.AlertDialog
@@ -34,13 +33,12 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
     }
 
     private val preferences: Preferences by lazy { Preferences(this) }
-    private val departureView: TextView by lazy { findViewById(R.id.input_departure) as TextView }
-    private val arrivalView: TextView by lazy { findViewById(R.id.input_arrival) as TextView }
-    private val scheduleGroup: RadioGroup by lazy { findViewById(R.id.schedule_group) as RadioGroup }
-    private val nextTrainView: TextView by lazy { findViewById(R.id.next_train) as TextView }
+    private val departureView: TextView by lazy { findViewById<TextView>(R.id.input_departure) }
+    private val arrivalView: TextView by lazy { findViewById<TextView>(R.id.input_arrival) }
+    private val scheduleGroup: RadioGroup by lazy { findViewById<RadioGroup>(R.id.schedule_group) }
+    private val nextTrainView: TextView by lazy { findViewById<TextView>(R.id.next_train) }
     private val resultsAdapter: ResultsListAdapter by lazy { ResultsListAdapter(this) }
     private val firebaseAnalytics: FirebaseAnalytics by lazy { FirebaseAnalytics.getInstance(this) }
-    private val scheduleViewModel: ScheduleViewModel  = ViewModelProviders.of(this).get(javaClass<ScheduleViewModel>)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +48,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
         //        setSupportActionBar(toolbar);
 
         // Setup result view
-        val resultsView = findViewById(R.id.results) as ListView
+        val resultsView = findViewById<ListView>(R.id.results)
         resultsView.adapter = resultsAdapter
 
         // TODO: check saved station name, invalid it if it's not in our list.

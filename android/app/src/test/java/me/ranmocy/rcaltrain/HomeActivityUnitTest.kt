@@ -27,12 +27,12 @@ class HomeActivityUnitTest {
     private val gson: Gson by lazy { Gson() }
 
     private val activity: HomeActivity by lazy { Robolectric.setupActivity(HomeActivity::class.java) }
-    private val btnWeek: Button by lazy { activity.findViewById(R.id.btn_week) as Button }
-    private val btnSat: Button by lazy { activity.findViewById(R.id.btn_sat) as Button }
-    private val btnSun: Button by lazy { activity.findViewById(R.id.btn_sun) as Button }
-    private val departureInput: TextView by lazy { activity.findViewById(R.id.input_departure) as TextView }
-    private val arrivalInput: TextView by lazy { activity.findViewById(R.id.input_arrival) as TextView }
-    private val results: ListView by lazy { activity.findViewById(R.id.results) as ListView }
+    private val btnWeek: Button by lazy { activity.findViewById<Button>(R.id.btn_week) }
+    private val btnSat: Button by lazy { activity.findViewById<Button>(R.id.btn_sat) }
+    private val btnSun: Button by lazy { activity.findViewById<Button>(R.id.btn_sun) }
+    private val departureInput: TextView by lazy { activity.findViewById<TextView>(R.id.input_departure) }
+    private val arrivalInput: TextView by lazy { activity.findViewById<TextView>(R.id.input_arrival) }
+    private val results: ListView by lazy { activity.findViewById<ListView>(R.id.results) }
 
     @Before
     fun setup() {

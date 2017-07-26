@@ -14,6 +14,7 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.Resetter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -97,7 +98,7 @@ public class ScheduleDatabaseTest {
         db.updateData(
                 Arrays.asList(new Station(123, SAN_FRANCISCO), new Station(321, STREET22)),
                 Collections.singletonList(new Service("s_1", true, false, false, today, today)),
-                Collections.emptyList(),
+                Collections.<ServiceDate>emptyList(),
                 Collections.singletonList(new Trip("t_1", "s_1")),
                 Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
 
@@ -122,14 +123,12 @@ public class ScheduleDatabaseTest {
         List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
-        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
-                .containsExactly(455, 525, 605, 615, 635, 645, 659, 705, 715, 735,
-                        745, 759, 805, 815, 835, 845, 900, 1000, 1100, 1200, 1300,
-                        1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
-        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
-                .containsExactly(459, 529, 609, 619, 639, 651, 703, 710, 719, 739,
-                        751, 803, 810, 819, 839, 849, 905, 1004, 1104, 1204, 1304,
-                        1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+        assertThat(mapDeparture(results)).containsExactly(
+                455, 525, 605, 615, 635, 645, 659, 705, 715, 735, 745, 759, 805, 815, 835, 845, 900,
+                1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
+        assertThat(mapArrival(results)).containsExactly(
+                459, 529, 609, 619, 639, 651, 703, 710, 719, 739, 751, 803, 810, 819, 839, 849, 905,
+                1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
     }
 
     @Test
@@ -144,12 +143,10 @@ public class ScheduleDatabaseTest {
         List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SATURDAY, today, now);
 
-        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
-                .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007,
-                        2137, 2251, 2405);
-        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
-                .containsExactly(811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011,
-                        2141, 2255, 2410);
+        assertThat(mapDeparture(results)).containsExactly(
+                807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137, 2251, 2405);
+        assertThat(mapArrival(results)).containsExactly(
+                811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141, 2255, 2410);
     }
 
     @Test
@@ -164,10 +161,10 @@ public class ScheduleDatabaseTest {
         List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SUNDAY, today, now);
 
-        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
-                .containsExactly(807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137);
-        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
-                .containsExactly(811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141);
+        assertThat(mapDeparture(results)).containsExactly(
+                807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137);
+        assertThat(mapArrival(results)).containsExactly(
+                811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141);
     }
 
     @Test
@@ -184,10 +181,26 @@ public class ScheduleDatabaseTest {
         List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_NOW, today, now);
 
-        assertThat(results.stream().map(result -> formatTime(result.departureTime)).collect(Collectors.toList()))
-                .containsExactly(1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
-        assertThat(results.stream().map(result -> formatTime(result.arrivalTime)).collect(Collectors.toList()))
-                .containsExactly(1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+        assertThat(mapDeparture(results)).containsExactly(
+                1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
+        assertThat(mapArrival(results)).containsExactly(
+                1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+    }
+
+    private static List<Integer> mapDeparture(List<ScheduleDao.ScheduleResult> results) {
+        List<Integer> list = new ArrayList<>();
+        for (ScheduleDao.ScheduleResult result : results) {
+            list.add(formatTime(result.departureTime));
+        }
+        return list;
+    }
+
+    private static List<Integer> mapArrival(List<ScheduleDao.ScheduleResult> results) {
+        List<Integer> list = new ArrayList<>();
+        for (ScheduleDao.ScheduleResult result : results) {
+            list.add(formatTime(result.arrivalTime));
+        }
+        return list;
     }
 
     private static int formatTime(DayTime dayTime) {

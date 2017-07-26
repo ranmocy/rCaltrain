@@ -57,9 +57,9 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
         if (convertView == null) {
             view = layoutInflater.inflate(R.layout.result_item, parent, false)!!
             holder = ViewHolder()
-            holder.departureView = view.findViewById(R.id.departure_time) as TextView
-            holder.arrivalView = view.findViewById(R.id.arrival_time) as TextView
-            holder.intervalView = view.findViewById(R.id.interval_time) as TextView
+            holder.departureView = view.findViewById<TextView>(R.id.departure_time)
+            holder.arrivalView = view.findViewById<TextView>(R.id.arrival_time)
+            holder.intervalView = view.findViewById<TextView>(R.id.interval_time)
             view.tag = holder
         } else {
             view = convertView
