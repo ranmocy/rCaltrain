@@ -1,5 +1,8 @@
 package me.ranmocy.rcaltrain
 
+import android.arch.lifecycle.LifecycleRegistry
+import android.arch.lifecycle.LifecycleRegistryOwner
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.annotation.VisibleForTesting
 import android.support.v7.app.AlertDialog
@@ -19,10 +22,15 @@ import me.ranmocy.rcaltrain.models.Station
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
 import me.ranmocy.rcaltrain.ui.StationListAdapter
 
-class HomeActivity : AppCompatActivity(), View.OnClickListener {
+class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistryOwner {
 
     companion object {
         private val TAG = "HomeActivity"
+    }
+
+    private val lifecycleRegistry = LifecycleRegistry(this)
+    override fun getLifecycle(): LifecycleRegistry {
+        return lifecycleRegistry
     }
 
     private val preferences: Preferences by lazy { Preferences(this) }
@@ -32,7 +40,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener {
     private val nextTrainView: TextView by lazy { findViewById(R.id.next_train) as TextView }
     private val resultsAdapter: ResultsListAdapter by lazy { ResultsListAdapter(this) }
     private val firebaseAnalytics: FirebaseAnalytics by lazy { FirebaseAnalytics.getInstance(this) }
-
+    private val scheduleViewModel: ScheduleViewModel  = ViewModelProviders.of(this).get(javaClass<ScheduleViewModel>)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

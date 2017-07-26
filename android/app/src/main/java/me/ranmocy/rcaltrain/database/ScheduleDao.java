@@ -24,7 +24,7 @@ public interface ScheduleDao {
     @interface ServiceType {
     }
 
-    final class ScheduleResult {
+    public final class ScheduleResult {
         DayTime departureTime;
         DayTime arrivalTime;
     }
