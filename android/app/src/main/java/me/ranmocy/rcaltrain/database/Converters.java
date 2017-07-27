@@ -8,7 +8,7 @@ import me.ranmocy.rcaltrain.models.DayTime;
 
 public final class Converters {
     @TypeConverter
-    public static Calendar longToCalendar(Long value) {
+    public static Calendar getCalendar(Long value) {
         if (value == null) {
             return null;
         }
@@ -22,7 +22,7 @@ public final class Converters {
     }
 
     @TypeConverter
-    public static Long calendarToLong(Calendar date) {
+    public static Long fromCalendar(Calendar date) {
         if (date == null) return null;
         return date.get(Calendar.YEAR) * 10000L +
                 (date.get(Calendar.MONTH) + 1) * 100 +
@@ -30,12 +30,12 @@ public final class Converters {
     }
 
     @TypeConverter
-    public static DayTime fromSecondsOfDay(Long value) {
+    public static DayTime toDayTime(Long value) {
         return value == null ? null : new DayTime(value);
     }
 
     @TypeConverter
-    public static Long dayTimeToSecondsOfDay(DayTime dayTime) {
+    public static Long fromDayTime(DayTime dayTime) {
         return dayTime == null ? null : dayTime.toSecondsSinceMidnight();
     }
 }

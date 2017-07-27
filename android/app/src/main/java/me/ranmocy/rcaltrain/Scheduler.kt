@@ -1,6 +1,7 @@
 package me.ranmocy.rcaltrain
 
 import android.util.Log
+import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.models.*
 import java.util.*
 
@@ -8,8 +9,7 @@ import java.util.*
 internal object Scheduler {
     private const val TAG = "Scheduler"
 
-    fun schedule(
-            fromName: String, toName: String, scheduleType: ScheduleType): List<ScheduleResult> {
+    fun schedule(fromName: String, toName: String, @ScheduleDao.ServiceType scheduleType: Int): List<ScheduleResult> {
         Log.i(TAG, String.format("from:%s, to:%s, type:%s", fromName, toName, scheduleType))
 
         val resultList = ArrayList<ScheduleResult>()
@@ -34,7 +34,7 @@ internal object Scheduler {
                 val arrivalTime = stopList[arrivalIndex].time
 
                 // check current time
-                if (scheduleType == ScheduleType.NOW && DayTime.now().after(departureTime)) {
+                if (scheduleType == ScheduleDao.SERVICE_NOW && DayTime.now().after(departureTime)) {
                     continue
                 }
                 resultList.add(ScheduleResult(departureTime, arrivalTime))

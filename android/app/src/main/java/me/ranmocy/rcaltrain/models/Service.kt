@@ -1,5 +1,6 @@
 package me.ranmocy.rcaltrain.models
 
+import me.ranmocy.rcaltrain.database.ScheduleDao
 import java.util.*
 
 /** Service model. */
@@ -45,9 +46,9 @@ class Service private constructor(private val weekday: Boolean, private val satu
         return !startDate.after(current) && !endDate.before(current)
     }
 
-    private fun isUnderScheduleType(scheduleType: ScheduleType): Boolean {
+    private fun isUnderScheduleType(@ScheduleDao.ServiceType scheduleType: Int): Boolean {
         when (scheduleType) {
-            ScheduleType.NOW -> {
+            ScheduleDao.SERVICE_NOW -> {
                 val current = Calendar.getInstance()
                 val dayOfWeek = current.get(Calendar.DAY_OF_WEEK)
                 when (dayOfWeek) {
@@ -57,9 +58,9 @@ class Service private constructor(private val weekday: Boolean, private val satu
                     else -> throw RuntimeException("Unexpected dayOfWeek:" + dayOfWeek)
                 }
             }
-            ScheduleType.WEEKDAY -> return weekday
-            ScheduleType.SATURDAY -> return saturday
-            ScheduleType.SUNDAY -> return sunday
+            ScheduleDao.SERVICE_WEEKDAY -> return weekday
+            ScheduleDao.SERVICE_SATURDAY -> return saturday
+            ScheduleDao.SERVICE_SUNDAY -> return sunday
             else -> throw RuntimeException("Unexpected schedule type:" + scheduleType)
         }
     }
@@ -78,7 +79,7 @@ class Service private constructor(private val weekday: Boolean, private val satu
             return SERVICE_MAP[serviceId]!!
         }
 
-        fun getAllValidServices(scheduleType: ScheduleType): List<Service> {
+        fun getAllValidServices(@ScheduleDao.ServiceType scheduleType: Int): List<Service> {
             val current = Calendar.getInstance()
             val validServices = SERVICE_MAP.values.filter {
                 it.isInServiceOn(current) && it.isUnderScheduleType(scheduleType)
