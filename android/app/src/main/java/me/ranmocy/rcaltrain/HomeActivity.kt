@@ -19,6 +19,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.models.ScheduleResult
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
+import me.ranmocy.rcaltrain.ui.ScheduleViewModel
 import me.ranmocy.rcaltrain.ui.StationListAdapter
 
 class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistryOwner {
