@@ -158,10 +158,6 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun reschedule() {
-        if (!DataLoader.isLoaded()) {
-            return
-        }
-
         val departure = departureView.text.toString()
         val destination = arrivalView.text.toString()
 

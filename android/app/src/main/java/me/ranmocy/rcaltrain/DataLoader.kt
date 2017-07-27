@@ -264,10 +264,6 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
 
         private var loaded = false
 
-        fun isLoaded(): Boolean {
-            return loaded
-        }
-
         @Synchronized
         fun loadDataIfNot(context: Context) {
             if (loaded) {
