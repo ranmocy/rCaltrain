@@ -26,6 +26,12 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
         notifyDataSetChanged()
     }
 
+    fun setData(results: List<ScheduleResult>) {
+        resultList.clear()
+        resultList.addAll(results)
+        notifyDataSetChanged()
+    }
+
     val nextTime: String
         get() {
             if (resultList.isEmpty()) {

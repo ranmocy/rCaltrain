@@ -2,6 +2,8 @@ package me.ranmocy.rcaltrain
 
 import android.arch.lifecycle.LifecycleRegistry
 import android.arch.lifecycle.LifecycleRegistryOwner
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.annotation.VisibleForTesting
 import android.support.v7.app.AlertDialog
@@ -14,8 +16,7 @@ import android.widget.ListView
 import android.widget.RadioGroup
 import android.widget.TextView
 import com.google.firebase.analytics.FirebaseAnalytics
-import me.ranmocy.rcaltrain.database.ScheduleDao
-import me.ranmocy.rcaltrain.database.ScheduleDatabase
+import me.ranmocy.rcaltrain.models.ScheduleResult
 import me.ranmocy.rcaltrain.models.ScheduleType
 import me.ranmocy.rcaltrain.models.Station
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
@@ -60,6 +61,11 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
             ScheduleType.SATURDAY -> scheduleGroup.check(R.id.btn_sat)
             ScheduleType.SUNDAY -> scheduleGroup.check(R.id.btn_sun)
         }
+
+        ViewModelProviders.of(this).get(ScheduleViewModel::class.java).results.observe(this, Observer { t ->
+            val results = t ?: ArrayList<ScheduleResult>()
+            resultsAdapter.setData(results)
+        })
 
         // Init schedule
         reschedule()
@@ -183,9 +189,5 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
         } else {
             nextTrainView.visibility = View.GONE
         }
-
-        ScheduleDatabase.get(this)
-                .getResults(departure, destination, ScheduleDao.SERVICE_WEEKDAY)
-                .observeForever { t -> Log.i("DATABASE", "Fetched:" + t!!.size) }
     }
 }

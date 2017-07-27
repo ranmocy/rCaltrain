@@ -5,6 +5,7 @@ import java.util.concurrent.Executors
 
 /** rCaltrain Application */
 class rCaltrain : Application() {
+
     private val executor = Executors.newCachedThreadPool()
 
     override fun onCreate() {

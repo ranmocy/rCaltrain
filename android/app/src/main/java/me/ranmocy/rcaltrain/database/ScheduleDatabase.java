@@ -1,6 +1,5 @@
 package me.ranmocy.rcaltrain.database;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
@@ -46,8 +45,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
 
     abstract ScheduleDao scheduleDao();
 
-    public LiveData<List<ScheduleResult>> getResults(
-            String from, String to, @ScheduleDao.ServiceType int serviceType) {
+    public List<ScheduleResult> getResults(String from, String to, @ScheduleDao.ServiceType int serviceType) {
         Calendar today = Calendar.getInstance();
         DayTime now = DayTime.Companion.now();
         Input input = getInput(serviceType, today, now);
