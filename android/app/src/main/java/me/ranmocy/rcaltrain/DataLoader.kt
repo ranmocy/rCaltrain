@@ -10,8 +10,6 @@ import me.ranmocy.rcaltrain.database.ServiceDate
 import me.ranmocy.rcaltrain.database.Stop
 import me.ranmocy.rcaltrain.database.Trip
 import me.ranmocy.rcaltrain.models.DayTime
-import me.ranmocy.rcaltrain.models.Service
-import me.ranmocy.rcaltrain.models.Station
 import org.xmlpull.v1.XmlPullParser.*
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
@@ -29,7 +27,7 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * "San Francisco" => [70021, 70022]
      */
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun loadStops() : List<me.ranmocy.rcaltrain.database.Station> {
+    private fun loadStops(): List<me.ranmocy.rcaltrain.database.Station> {
         val list = ArrayList<me.ranmocy.rcaltrain.database.Station>()
 
         startDoc()
@@ -46,7 +44,6 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             endTag(ARRAY)
             endTag(VALUE)
 
-            Station.addStation(stationName, stationIds)
             stationIds.mapTo(list) { me.ranmocy.rcaltrain.database.Station(it, stationName) }
         }
         endTag(MAP)
@@ -61,7 +58,7 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * CT-16APR-Caltrain-Weekday-01 => {weekday: false, saturday: true, sunday: false, start_date: 20160404, end_date: 20190331}
      */
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadCalendar() : List<me.ranmocy.rcaltrain.database.Service> {
+    private fun loadCalendar(): List<me.ranmocy.rcaltrain.database.Service> {
         val list = ArrayList<me.ranmocy.rcaltrain.database.Service>()
 
         startDoc()
@@ -84,7 +81,6 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             endTag(MAP)
             endTag(VALUE)
 
-            Service.addService(serviceId, weekday, saturday, sunday, startDate, endDate)
             list.add(me.ranmocy.rcaltrain.database.Service(serviceId, weekday, saturday, sunday, startDate, endDate))
         }
         endTag(MAP)
@@ -99,14 +95,13 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * CT-16APR-Caltrain-Weekday-01 => [[20160530,2]]
      */
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadCalendarDates() : List<ServiceDate> {
+    private fun loadCalendarDates(): List<ServiceDate> {
         val list = ArrayList<ServiceDate>()
 
         startDoc()
         startTag(MAP)
         while (isTag(KEY)) {
             val serviceId = key
-            val service = Service.getService(serviceId)
 
             startTag(VALUE)
             startTag(ARRAY)
@@ -115,13 +110,8 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
                 startTag(ARRAY)
                 val date = getDate(ELEM)
                 val type = getInt(ELEM)
-                if (type == 1) {
-                    service.addAdditionalDate(date)
-                } else if (type == 2) {
-                    service.addExceptionDate(date)
-                } else {
-                    throw RuntimeException("Unexpected exception dates type:" + type)
-                }
+                if (type != 1 && type != 2) throw RuntimeException("Unexpected exception dates type:" + type)
+
                 list.add(ServiceDate(serviceId, date, type))
                 endTag(ARRAY)
                 endTag(ELEM)
@@ -141,8 +131,9 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
      * { "Bullet" => { "CT-14OCT-XXX" => { "650770-CT-14OCT-XXX" => [[70012, 29700], ...] } } }
      */
     data class Routes(val trips: ArrayList<Trip>, var stops: ArrayList<Stop>)
+
     @Throws(IOException::class, XmlPullParserException::class)
-    private fun loadRoutes() : Routes {
+    private fun loadRoutes(): Routes {
         val result = Routes(ArrayList<Trip>(), ArrayList<Stop>())
 
         startDoc()
@@ -154,13 +145,11 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
             startTag(MAP)
             while (isTag(KEY)) {
                 val serviceId = key
-                val service = Service.getService(serviceId)
 
                 startTag(VALUE)
                 startTag(MAP)
                 while (isTag(KEY)) {
                     val tripId = key
-                    val trip = service.addTrip(tripId)
                     result.trips.add(Trip(tripId, serviceId))
 
                     startTag(VALUE)
@@ -169,10 +158,9 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
                     while (isTag(ELEM)) {
                         startTag(ELEM)
                         startTag(ARRAY)
+
                         val stationId = getInt(ELEM)
-                        val station = Station.getStation(stationId)
                         val stopTime = getTime(ELEM)
-                        trip.addStop(station, stopTime)
                         result.stops.add(Stop(tripId, sequence++, stationId, stopTime))
 
                         endTag(ARRAY)
@@ -276,7 +264,7 @@ class DataLoader private constructor(context: Context, @XmlRes resId: Int) {
 
         private var loaded = false
 
-        fun isLoaded() : Boolean {
+        fun isLoaded(): Boolean {
             return loaded
         }
 

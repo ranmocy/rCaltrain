@@ -8,7 +8,6 @@ import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import junit.framework.Assert.assertEquals
 import me.ranmocy.rcaltrain.models.ScheduleResult
-import me.ranmocy.rcaltrain.models.Station
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -155,7 +154,7 @@ class HomeActivityUnitTest {
         val shadowAlertDialog = ShadowAlertDialogV7.latestShadowAlertDialog!!
         val adapter = shadowAlertDialog.adapter
         for (l in adapter.count - 1 downTo 0) {
-            if (station == (adapter.getItem(l) as Station).name) {
+            if (station == adapter.getItem(l)) {
                 shadowAlertDialog.shadowListView.performItemClick(l)
                 return
             }

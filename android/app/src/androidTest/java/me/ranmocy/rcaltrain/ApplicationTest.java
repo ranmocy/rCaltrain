@@ -28,17 +28,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
-import me.ranmocy.rcaltrain.models.Station;
-
 import static android.support.test.espresso.Espresso.onData;
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static org.hamcrest.CoreMatchers.allOf;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.anything;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -62,7 +58,8 @@ public class ApplicationTest {
         Scanner s = new Scanner(inputStream).useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";
 
-        return gson.fromJson(result, new TypeToken<Collection<ScheduleRow>>() {}.getType());
+        return gson.fromJson(result, new TypeToken<Collection<ScheduleRow>>() {
+        }.getType());
     }
 
     private static final class ScheduleRow {
@@ -87,7 +84,7 @@ public class ApplicationTest {
             Log.i("test", "Testing to:" + toName);
 
             onView(withId(R.id.input_arrival)).perform(click());
-            onData(allOf(is(instanceOf(Station.class)), new StationMatcher(toName))).perform(click());
+            onData(withText(toName)).perform(click());
 
             for (int j = i - 1; j >= 0; j--) {
                 ScheduleRow from = weekdayNB.get(j);
@@ -96,12 +93,13 @@ public class ApplicationTest {
                 Log.i("test", "Testing to:" + toName + ", from:" + fromName);
 
                 onView(withId(R.id.input_departure)).perform(click());
-                onData(allOf(is(instanceOf(Station.class)), new StationMatcher(fromName))).perform(click());
+                onData(withText(fromName)).perform(click());
 
                 if (fromStops.length != toStops.length) throw new AssertionError();
                 List<TimeResult> expects = new ArrayList<>();
                 for (int k = fromStops.length - 1; k >= 0; k--) {
-                    if (!fromStops[k].service_type.equals(toStops[k].service_type)) throw new AssertionError();
+                    if (!fromStops[k].service_type.equals(toStops[k].service_type))
+                        throw new AssertionError();
                     if (fromStops[k].time != null && toStops[k].time != null) {
                         expects.add(new TimeResult(fromStops[k].time, toStops[k].time));
                     }
@@ -150,26 +148,6 @@ public class ApplicationTest {
             String[] split = time.split(":");
             int hours = Integer.parseInt(split[0]) % 24;
             return String.format(Locale.US, "%02d:%s", hours, split[1]);
-        }
-    }
-
-    private static final class StationMatcher extends TypeSafeMatcher<Station> {
-
-        private String targetName;
-
-        StationMatcher(String targetName) {
-            assert targetName != null;
-            this.targetName = targetName;
-        }
-
-        @Override
-        protected boolean matchesSafely(Station item) {
-            return targetName.equals(item.getName());
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("station with name ").appendValue(targetName);
         }
     }
 
