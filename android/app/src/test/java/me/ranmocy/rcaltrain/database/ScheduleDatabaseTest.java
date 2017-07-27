@@ -23,6 +23,7 @@ import java.util.List;
 import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.models.DayTime;
+import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -101,11 +102,11 @@ public class ScheduleDatabaseTest {
                 Collections.singletonList(new Trip("t_1", "s_1")),
                 Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
+        List<ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(results).hasSize(1);
-        ScheduleDao.ScheduleResult result = results.get(0);
+        ScheduleResult result = results.get(0);
         assertThat(result.departureTime.toSecondsSinceMidnight()).isEqualTo(start.toSecondsSinceMidnight());
         assertThat(result.arrivalTime.toSecondsSinceMidnight()).isEqualTo(end.toSecondsSinceMidnight());
     }
@@ -114,12 +115,12 @@ public class ScheduleDatabaseTest {
     public void test_realData_weekday() {
         today.clear();
         today.set(2017, 6/*0-based*/, 24);
-        assertThat(Converters.calendarToLong(today)).isEqualTo(20170724);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170724);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
+        List<ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -134,12 +135,12 @@ public class ScheduleDatabaseTest {
     public void test_realData_saturday() {
         today.clear();
         today.set(2017, 6/*0-based*/, 29);
-        assertThat(Converters.calendarToLong(today)).isEqualTo(20170729);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170729);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
+        List<ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SATURDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -152,12 +153,12 @@ public class ScheduleDatabaseTest {
     public void test_realData_sunday() {
         today.clear();
         today.set(2017, 6/*0-based*/, 30);
-        assertThat(Converters.calendarToLong(today)).isEqualTo(20170730);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170730);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
+        List<ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SUNDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -170,14 +171,14 @@ public class ScheduleDatabaseTest {
     public void test_realData_now() {
         today.clear();
         today.set(2017, 6/*0-based*/, 24);
-        assertThat(Converters.calendarToLong(today)).isEqualTo(20170724);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170724);
 
         assertThat(now.toString()).isEqualTo("09:59");
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
+        List<ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_NOW, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -186,17 +187,17 @@ public class ScheduleDatabaseTest {
                 1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
     }
 
-    private static List<Integer> mapDeparture(List<ScheduleDao.ScheduleResult> results) {
+    private static List<Integer> mapDeparture(List<ScheduleResult> results) {
         List<Integer> list = new ArrayList<>();
-        for (ScheduleDao.ScheduleResult result : results) {
+        for (ScheduleResult result : results) {
             list.add(formatTime(result.departureTime));
         }
         return list;
     }
 
-    private static List<Integer> mapArrival(List<ScheduleDao.ScheduleResult> results) {
+    private static List<Integer> mapArrival(List<ScheduleResult> results) {
         List<Integer> list = new ArrayList<>();
-        for (ScheduleDao.ScheduleResult result : results) {
+        for (ScheduleResult result : results) {
             list.add(formatTime(result.arrivalTime));
         }
         return list;
