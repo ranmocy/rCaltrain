@@ -28,7 +28,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
+@Config(constants = BuildConfig.class, sdk = 25, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
 public class ScheduleDatabaseTest {
 
     @Implements(ScheduleDatabase.class)

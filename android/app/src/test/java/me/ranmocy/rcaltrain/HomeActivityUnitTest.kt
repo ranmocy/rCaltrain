@@ -20,7 +20,7 @@ import java.util.*
  * To work on unit tests, switch the Test Artifact in the Build Variants view.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(constants = BuildConfig::class, shadows = arrayOf(ShadowAlertDialogV7::class))
+@Config(constants = BuildConfig::class, sdk = intArrayOf(25), shadows = arrayOf(ShadowAlertDialogV7::class))
 class HomeActivityUnitTest {
 
     private val gson: Gson by lazy { Gson() }
