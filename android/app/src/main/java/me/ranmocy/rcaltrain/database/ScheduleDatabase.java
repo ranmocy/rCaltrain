@@ -53,10 +53,10 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    List<ScheduleResult> getResultsSync(
+    List<ScheduleResult> getResultsTesting(
             String from, String to, @ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
         Input input = getInput(serviceType, today, now);
-        return scheduleDao().getResultsSync(from, to, input.serviceType, today, input.now);
+        return scheduleDao().getResults(from, to, input.serviceType, today, input.now);
     }
 
     public void updateData(

@@ -17,7 +17,7 @@ public final class ScheduleResult implements Comparable<ScheduleResult> {
     }
 
     public final String getIntervalTimeString() {
-        return String.format(Locale.getDefault(), "%d min", this.departureTime.toInMinutes(this.arrivalTime));
+        return String.format(Locale.getDefault(), "%d min", departureTime.toInMinutes(arrivalTime));
     }
 
     public int compareTo(@NotNull ScheduleResult other) {

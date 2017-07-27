@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
@@ -102,7 +101,7 @@ public class ScheduleDatabaseTest {
                 Collections.singletonList(new Trip("t_1", "s_1")),
                 Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(results).hasSize(1);
@@ -120,7 +119,7 @@ public class ScheduleDatabaseTest {
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -140,7 +139,7 @@ public class ScheduleDatabaseTest {
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SATURDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -158,7 +157,7 @@ public class ScheduleDatabaseTest {
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SUNDAY, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
@@ -178,7 +177,7 @@ public class ScheduleDatabaseTest {
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
-        List<ScheduleDao.ScheduleResult> results = db.getResultsSync(
+        List<ScheduleDao.ScheduleResult> results = db.getResultsTesting(
                 SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_NOW, today, now);
 
         assertThat(mapDeparture(results)).containsExactly(
