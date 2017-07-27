@@ -5,8 +5,8 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.content.Context
 import me.ranmocy.rcaltrain.database.ScheduleDao
-import me.ranmocy.rcaltrain.database.ScheduleDao.ScheduleResult
 import me.ranmocy.rcaltrain.database.ScheduleDatabase
+import me.ranmocy.rcaltrain.models.ScheduleResult
 
 class ScheduleViewModel : ViewModel() {
 

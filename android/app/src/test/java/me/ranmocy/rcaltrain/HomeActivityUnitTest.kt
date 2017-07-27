@@ -143,8 +143,8 @@ class HomeActivityUnitTest {
                 for (l in expects.indices.reversed()) {
                     val expect = expects[l]
                     val result = resultsAdapter.getItem(l) as ScheduleResult
-                    assertEquals(expect.departureDisplay, result.departureTimeString)
-                    assertEquals(expect.arrivalDisplay, result.arrivalTimeString)
+                    assertEquals(expect.departureDisplay, result.departureTime.toString())
+                    assertEquals(expect.arrivalDisplay, result.arrivalTime.toString())
                 }
             }
         }

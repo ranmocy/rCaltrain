@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import me.ranmocy.rcaltrain.models.DayTime;
+import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 @Dao
 public interface ScheduleDao {
@@ -22,11 +23,6 @@ public interface ScheduleDao {
 
     @IntDef({SERVICE_NOW, SERVICE_WEEKDAY, SERVICE_SATURDAY, SERVICE_SUNDAY})
     @interface ServiceType {
-    }
-
-    public final class ScheduleResult {
-        DayTime departureTime;
-        DayTime arrivalTime;
     }
 
     @Query(QueriesKt.QUERY)

@@ -66,8 +66,8 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
             holder = view.tag as ViewHolder
         }
         val result = getItem(position)
-        holder.departureView!!.text = result.departureTimeString
-        holder.arrivalView!!.text = result.arrivalTimeString
+        holder.departureView!!.text = result.departureTime.toString()
+        holder.arrivalView!!.text = result.arrivalTime.toString()
         holder.intervalView!!.text = result.intervalTimeString
         return view
     }

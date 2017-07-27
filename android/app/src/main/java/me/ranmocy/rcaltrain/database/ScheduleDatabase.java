@@ -17,6 +17,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import me.ranmocy.rcaltrain.models.DayTime;
+import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 @Database(version = 1, entities = {
         Service.class,
@@ -45,7 +46,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
 
     abstract ScheduleDao scheduleDao();
 
-    public LiveData<List<ScheduleDao.ScheduleResult>> getResults(
+    public LiveData<List<ScheduleResult>> getResults(
             String from, String to, @ScheduleDao.ServiceType int serviceType) {
         Calendar today = Calendar.getInstance();
         DayTime now = DayTime.Companion.now();
@@ -54,7 +55,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    List<ScheduleDao.ScheduleResult> getResultsSync(
+    List<ScheduleResult> getResultsSync(
             String from, String to, @ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
         Input input = getInput(serviceType, today, now);
         return scheduleDao().getResultsSync(from, to, input.serviceType, today, input.now);
