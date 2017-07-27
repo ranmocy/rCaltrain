@@ -6,9 +6,10 @@ android {
         release
     }
     compileSdkVersion 26
-    buildToolsVersion "25.0.3"
+    buildToolsVersion "26.0.1"
     repositories {
         maven { url 'http://repo1.maven.org/maven2' }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
     defaultConfig {
         applicationId "me.ranmocy.rcaltrain"
@@ -50,7 +51,7 @@ dependencies {
     compile 'com.google.firebase:firebase-analytics:9.0.0'
 
     testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.3.2"
+    testCompile "org.robolectric:robolectric:3.4-SNAPSHOT"
     testCompile 'com.google.code.gson:gson:2.8.0'
     testCompile "com.google.truth:truth:0.34"
 
