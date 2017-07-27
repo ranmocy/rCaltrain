@@ -1,9 +1,11 @@
 package me.ranmocy.rcaltrain.database;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.support.annotation.IntDef;
+import android.support.annotation.VisibleForTesting;
 
 import java.util.Calendar;
 import java.util.List;
@@ -24,7 +26,12 @@ public interface ScheduleDao {
     }
 
     @Query(QueriesKt.QUERY)
-    List<ScheduleResult> getResults(
+    LiveData<List<ScheduleResult>> getResults(
+            String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    @Query(QueriesKt.QUERY)
+    List<ScheduleResult> getResultsSync(
             String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
 
     @Insert

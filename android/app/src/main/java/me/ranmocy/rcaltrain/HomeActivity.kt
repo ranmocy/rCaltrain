@@ -33,6 +33,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
         return lifecycleRegistry
     }
 
+    private val scheduleViewModel: ScheduleViewModel by lazy { ViewModelProviders.of(this).get(ScheduleViewModel::class.java) }
     private val preferences: Preferences by lazy { Preferences(this) }
     private val departureView: TextView by lazy { findViewById<TextView>(R.id.input_departure) }
     private val arrivalView: TextView by lazy { findViewById<TextView>(R.id.input_arrival) }
@@ -62,10 +63,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
             ScheduleDao.SERVICE_SUNDAY -> scheduleGroup.check(R.id.btn_sun)
         }
 
-        ViewModelProviders.of(this).get(ScheduleViewModel::class.java).results.observe(this, Observer { t ->
-            val results = t ?: ArrayList<ScheduleResult>()
-            resultsAdapter.setData(results)
-        })
+        scheduleViewModel.results.observe(this, Observer { results -> updateUI(results ?: ArrayList<ScheduleResult>()) })
 
         // Init schedule
         reschedule()
@@ -182,7 +180,11 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
                 Events.EVENT_SCHEDULE,
                 Events.getScheduleEvent(departure, destination, scheduleType))
 
-        resultsAdapter.setData(departure, destination, scheduleType)
+        scheduleViewModel.updateQuery(this, departure, destination, scheduleType)
+    }
+
+    private fun updateUI(results: List<ScheduleResult>) {
+        resultsAdapter.setData(results)
         if (scheduleGroup.checkedRadioButtonId == R.id.btn_now) {
             nextTrainView.text = resultsAdapter.nextTime
             nextTrainView.visibility = View.VISIBLE

@@ -23,8 +23,8 @@ class ScheduleViewModel : ViewModel() {
         return results
     }
 
-    public val results: LiveData<List<ScheduleResult>> =
-            Transformations.map(lastInputs) { (context, departure, destination, serviceType) ->
+    val results: LiveData<List<ScheduleResult>> =
+            Transformations.switchMap(lastInputs) { (context, departure, destination, serviceType) ->
                 ScheduleDatabase.get(context).getResults(departure, destination, serviceType)
             }
 }

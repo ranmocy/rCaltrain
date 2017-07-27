@@ -1,5 +1,6 @@
 package me.ranmocy.rcaltrain.database;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
@@ -28,6 +29,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 @TypeConverters({Converters.class})
 public abstract class ScheduleDatabase extends RoomDatabase {
 
+    private static final String TAG = "ScheduleDatabase";
     private static ScheduleDatabase instance = null;
 
     public static ScheduleDatabase get(Context context) {
@@ -45,7 +47,8 @@ public abstract class ScheduleDatabase extends RoomDatabase {
 
     abstract ScheduleDao scheduleDao();
 
-    public List<ScheduleResult> getResults(String from, String to, @ScheduleDao.ServiceType int serviceType) {
+    public LiveData<List<ScheduleResult>> getResults(String from, String to, @ScheduleDao.ServiceType int serviceType) {
+        Log.i(TAG, "query results");
         Calendar today = Calendar.getInstance();
         DayTime now = DayTime.Companion.now();
         Input input = getInput(serviceType, today, now);
@@ -56,7 +59,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     List<ScheduleResult> getResultsTesting(
             String from, String to, @ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
         Input input = getInput(serviceType, today, now);
-        return scheduleDao().getResults(from, to, input.serviceType, today, input.now);
+        return scheduleDao().getResultsSync(from, to, input.serviceType, today, input.now);
     }
 
     public void updateData(
