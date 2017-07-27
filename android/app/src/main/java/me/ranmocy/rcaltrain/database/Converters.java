@@ -6,7 +6,7 @@ import java.util.Calendar;
 
 import me.ranmocy.rcaltrain.models.DayTime;
 
-public final class Converters {
+final class Converters {
     @TypeConverter
     public static Calendar getCalendar(Long value) {
         if (value == null) {

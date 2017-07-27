@@ -18,7 +18,6 @@ import android.widget.TextView
 import com.google.firebase.analytics.FirebaseAnalytics
 import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.models.ScheduleResult
-import me.ranmocy.rcaltrain.models.Station
 import me.ranmocy.rcaltrain.ui.ResultsListAdapter
 import me.ranmocy.rcaltrain.ui.StationListAdapter
 
@@ -34,12 +33,14 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
     }
 
     private val scheduleViewModel: ScheduleViewModel by lazy { ViewModelProviders.of(this).get(ScheduleViewModel::class.java) }
+    private val resultsAdapter: ResultsListAdapter by lazy { ResultsListAdapter(this) }
+    private val stationsAdapter: StationListAdapter by lazy { StationListAdapter(this) }
+
     private val preferences: Preferences by lazy { Preferences(this) }
     private val departureView: TextView by lazy { findViewById<TextView>(R.id.input_departure) }
     private val arrivalView: TextView by lazy { findViewById<TextView>(R.id.input_arrival) }
     private val scheduleGroup: RadioGroup by lazy { findViewById<RadioGroup>(R.id.schedule_group) }
     private val nextTrainView: TextView by lazy { findViewById<TextView>(R.id.next_train) }
-    private val resultsAdapter: ResultsListAdapter by lazy { ResultsListAdapter(this) }
     private val firebaseAnalytics: FirebaseAnalytics by lazy { FirebaseAnalytics.getInstance(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +64,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
             ScheduleDao.SERVICE_SUNDAY -> scheduleGroup.check(R.id.btn_sun)
         }
 
+        scheduleViewModel.getStations(this).observe(this, Observer { stationNames -> stationsAdapter.setData(stationNames ?: ArrayList<String>()) })
         scheduleViewModel.results.observe(this, Observer { results -> updateUI(results ?: ArrayList<ScheduleResult>()) })
 
         // Init schedule
@@ -137,8 +139,8 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
 
     private fun showStationSelector(isDeparture: Boolean) {
         AlertDialog.Builder(this)
-                .setAdapter(StationListAdapter(this)) { dialog, which ->
-                    val stationName = Station.allStations[which].name
+                .setAdapter(stationsAdapter) { dialog, which ->
+                    val stationName = stationsAdapter.getData()[which]
                     if (isDeparture) {
                         preferences.lastDepartureStationName = stationName
                         departureView.text = stationName

@@ -25,6 +25,9 @@ public interface ScheduleDao {
     @interface ServiceType {
     }
 
+    @Query("SELECT DISTINCT name from stations ORDER BY id")
+    LiveData<List<String>> getStationNames();
+
     @Query(QueriesKt.QUERY)
     LiveData<List<ScheduleResult>> getResults(
             String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);

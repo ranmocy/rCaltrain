@@ -8,8 +8,6 @@ import android.widget.BaseAdapter
 import android.widget.ListAdapter
 import android.widget.TextView
 import me.ranmocy.rcaltrain.R
-import me.ranmocy.rcaltrain.Scheduler
-import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.models.DayTime
 import me.ranmocy.rcaltrain.models.ScheduleResult
 import java.util.*
@@ -19,12 +17,6 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
 
     private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
     private val resultList = ArrayList<ScheduleResult>()
-
-    fun setData(fromName: String, toName: String, @ScheduleDao.ServiceType scheduleType: Int) {
-        resultList.clear()
-        resultList.addAll(Scheduler.schedule(fromName, toName, scheduleType))
-        notifyDataSetChanged()
-    }
 
     fun setData(results: List<ScheduleResult>) {
         resultList.clear()

@@ -47,6 +47,10 @@ public abstract class ScheduleDatabase extends RoomDatabase {
 
     abstract ScheduleDao scheduleDao();
 
+    public LiveData<List<String>> getStationNames() {
+        return scheduleDao().getStationNames();
+    }
+
     public LiveData<List<ScheduleResult>> getResults(String from, String to, @ScheduleDao.ServiceType int serviceType) {
         Log.i(TAG, "query results");
         Calendar today = Calendar.getInstance();
