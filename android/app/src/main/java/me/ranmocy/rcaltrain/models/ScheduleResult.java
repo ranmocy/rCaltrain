@@ -24,4 +24,9 @@ public final class ScheduleResult implements Comparable<ScheduleResult> {
         Intrinsics.checkParameterIsNotNull(other, "other");
         return this.departureTime.compareTo(other.departureTime);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s => %s", departureTime, arrivalTime);
+    }
 }

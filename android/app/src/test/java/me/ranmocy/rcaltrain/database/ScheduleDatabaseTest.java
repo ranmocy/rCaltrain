@@ -2,6 +2,11 @@ package me.ranmocy.rcaltrain.database;
 
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.util.Log;
+import android.util.Pair;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,11 +19,15 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.Resetter;
 
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Scanner;
 
 import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
@@ -28,7 +37,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 25, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
+@Config(constants = BuildConfig.class, sdk = 17, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
 public class ScheduleDatabaseTest {
 
     @Implements(ScheduleDatabase.class)
@@ -51,16 +60,13 @@ public class ScheduleDatabaseTest {
         }
 
         @Resetter
-        public static void reset() {
+        static void reset() {
             instance.close();
             instance = null;
         }
     }
 
-    private static final DayTime start = new DayTime(100);
-    private static final DayTime end = new DayTime(200);
-    private static final String SAN_FRANCISCO = "San Francisco";
-    private static final String STREET22 = "22nd St";
+    private static final Gson GSON = new Gson();
 
     private Calendar today;
     private DayTime now;
@@ -71,6 +77,8 @@ public class ScheduleDatabaseTest {
         today = Calendar.getInstance();
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
         db = ScheduleDatabase.get(RuntimeEnvironment.application);
+        // Even app would load it, we load again here to wait for result
+        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
     }
 
     @After
@@ -94,119 +102,161 @@ public class ScheduleDatabaseTest {
     }
 
     @Test
-    public void test_fakeData() {
-        db.updateData(
-                Arrays.asList(new Station(123, SAN_FRANCISCO), new Station(321, STREET22)),
-                Collections.singletonList(new Service("s_1", true, false, false, today, today)),
-                Collections.<ServiceDate>emptyList(),
-                Collections.singletonList(new Trip("t_1", "s_1")),
-                Arrays.asList(new Stop("t_1", 1, 123, start), new Stop("t_1", 2, 321, end)));
+    public void test_weekdayNB() {
+        today.clear();
+        today.set(2017, 7/*0-based*/, 2);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
 
-        List<ScheduleResult> results = db.getResultsTesting(
-                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
-
-        assertThat(results).hasSize(1);
-        ScheduleResult result = results.get(0);
-        assertThat(result.departureTime.toSecondsSinceMidnight()).isEqualTo(start.toSecondsSinceMidnight());
-        assertThat(result.arrivalTime.toSecondsSinceMidnight()).isEqualTo(end.toSecondsSinceMidnight());
+        testSchedule(getData("weekday_nb_tt.json"));
     }
 
     @Test
-    public void test_realData_weekday() {
+    public void test_weekdaySB() {
         today.clear();
-        today.set(2017, 6/*0-based*/, 24);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170724);
+        today.set(2017, 7/*0-based*/, 2);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
 
-        // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
-
-        List<ScheduleResult> results = db.getResultsTesting(
-                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_WEEKDAY, today, now);
-
-        assertThat(mapDeparture(results)).containsExactly(
-                455, 525, 605, 615, 635, 645, 659, 705, 715, 735, 745, 759, 805, 815, 835, 845, 900,
-                1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
-        assertThat(mapArrival(results)).containsExactly(
-                459, 529, 609, 619, 639, 651, 703, 710, 719, 739, 751, 803, 810, 819, 839, 849, 905,
-                1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+        testSchedule(getData("weekday_sb_tt.json"));
     }
 
     @Test
-    public void test_realData_saturday() {
+    public void test_saturdayNB() {
         today.clear();
-        today.set(2017, 6/*0-based*/, 29);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170729);
+        today.set(2017, 7/*0-based*/, 5);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
 
-        // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
-
-        List<ScheduleResult> results = db.getResultsTesting(
-                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SATURDAY, today, now);
-
-        assertThat(mapDeparture(results)).containsExactly(
-                807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137, 2251, 2405);
-        assertThat(mapArrival(results)).containsExactly(
-                811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141, 2255, 2410);
+        testSchedule(getData("weekend_nb_tt.json"));
     }
 
     @Test
-    public void test_realData_sunday() {
+    public void test_saturdaySB() {
         today.clear();
-        today.set(2017, 6/*0-based*/, 30);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170730);
+        today.set(2017, 7/*0-based*/, 5);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
 
-        // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
-
-        List<ScheduleResult> results = db.getResultsTesting(
-                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_SUNDAY, today, now);
-
-        assertThat(mapDeparture(results)).containsExactly(
-                807, 937, 1107, 1237, 1407, 1537, 1707, 1837, 2007, 2137);
-        assertThat(mapArrival(results)).containsExactly(
-                811, 941, 1111, 1241, 1411, 1541, 1711, 1841, 2011, 2141);
+        testSchedule(getData("weekend_sb_tt.json"));
     }
 
     @Test
-    public void test_realData_now() {
+    public void test_sundayNB() {
         today.clear();
-        today.set(2017, 6/*0-based*/, 24);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170724);
+        today.set(2017, 7/*0-based*/, 6);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
 
-        assertThat(now.toString()).isEqualTo("09:59");
-
-        // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
-
-        List<ScheduleResult> results = db.getResultsTesting(
-                SAN_FRANCISCO, STREET22, ScheduleDao.SERVICE_NOW, today, now);
-
-        assertThat(mapDeparture(results)).containsExactly(
-                1000, 1100, 1200, 1300, 1400, 1500, 1632, 1732, 1832, 1930, 2030, 2130, 2240, 2405);
-        assertThat(mapArrival(results)).containsExactly(
-                1004, 1104, 1204, 1304, 1404, 1504, 1636, 1736, 1836, 1934, 2034, 2134, 2244, 2410);
+        testSchedule(getData("weekend_nb_tt.json"));
     }
 
-    private static List<Integer> mapDeparture(List<ScheduleResult> results) {
-        List<Integer> list = new ArrayList<>();
-        for (ScheduleResult result : results) {
-            list.add(formatTime(result.departureTime));
+    @Test
+    public void test_sundaySB() {
+        today.clear();
+        today.set(2017, 7/*0-based*/, 6);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
+
+        testSchedule(getData("weekend_sb_tt.json"));
+    }
+
+    private static class StopTime {
+        String service_type;
+        String time;
+    }
+
+    private static class ScheduleRow {
+        String name;
+        List<StopTime> stop_times;
+    }
+
+    private List<ScheduleRow> getData(String filename) {
+        InputStream inputStream = ScheduleDatabaseTest.class.getClassLoader().getResourceAsStream(filename);
+        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+        String result = s.hasNext() ? s.next() : "";
+        return GSON.fromJson(result, (new TypeToken<List<ScheduleRow>>() {}).getType());
+    }
+
+    // fix time format 24:05 => 00:05
+    private String fixTime(String time) {
+        String[] split = time.split(":");
+        int hours = Integer.parseInt(split[0]) % 24;
+        return String.format(Locale.US, "%02d:%s", hours, split[1]);
+    }
+
+    private void testSchedule(List<ScheduleRow> schedules) {
+        @ScheduleDao.ServiceType int type;
+        boolean isSaturday = false;
+        switch (today.get(Calendar.DAY_OF_WEEK)) {
+            case Calendar.MONDAY:
+            case Calendar.TUESDAY:
+            case Calendar.WEDNESDAY:
+            case Calendar.THURSDAY:
+            case Calendar.FRIDAY:
+                type = ScheduleDao.SERVICE_WEEKDAY;
+                break;
+            case Calendar.SATURDAY:
+                type = ScheduleDao.SERVICE_SATURDAY;
+                isSaturday = true;
+                break;
+            case Calendar.SUNDAY:
+                type = ScheduleDao.SERVICE_SUNDAY;
+                break;
+            default:
+                throw new IllegalStateException("Unknown day of week");
         }
-        return list;
-    }
 
-    private static List<Integer> mapArrival(List<ScheduleResult> results) {
-        List<Integer> list = new ArrayList<>();
-        for (ScheduleResult result : results) {
-            list.add(formatTime(result.arrivalTime));
+        for (int i = schedules.size() - 1; i >= 0; i--) {
+            ScheduleRow to = schedules.get(i);
+            String toName = to.name;
+            List<StopTime> toStops = to.stop_times;
+            Log.i("test", "Testing to:" + toName);
+
+            for (int j = i - 1; j >= 0; j--) {
+                ScheduleRow from = schedules.get(j);
+                String fromName = from.name;
+                List<StopTime> fromStops = from.stop_times;
+                Log.i("test", "Testing to:" + toName + ", from:" + fromName);
+
+                assertThat(fromStops.size()).isEqualTo(toStops.size());
+
+                // get expects
+                List<Pair<String, String>> expects = new ArrayList<>();
+                for (int k = fromStops.size() - 1; k >= 0; k--) {
+                    StopTime fromStop = fromStops.get(k);
+                    StopTime toStop = toStops.get(k);
+                    assertThat(fromStop.service_type).isEqualTo(toStop.service_type);
+                    if (Objects.equals("SatOnly", fromStop.service_type) && !isSaturday) {
+                        continue;
+                    }
+                    if (fromStop.time != null && toStop.time != null) {
+                        expects.add(new Pair<>(fromStop.time, toStop.time));
+                    }
+                }
+                Collections.sort(expects, new Comparator<Pair<String, String>>() {
+                    @Override
+                    public int compare(Pair<String, String> a, Pair<String, String> b) {
+                        int i = a.first.compareTo(b.first);
+                        return i != 0 ? i : a.second.compareTo(b.second);
+                    }
+                });
+                List<String> expectTimes = new ArrayList<>();
+                for (Pair<String, String> expect : expects) {
+                    expectTimes.add(String.format("%s => %s", fixTime(expect.first), fixTime(expect.second)));
+                }
+
+                // get results
+                List<ScheduleResult> results = db.getResultsTesting(fromName, toName, type, today, now);
+                List<String> resultTimes = new ArrayList<>();
+                for (ScheduleResult result : results) {
+                    resultTimes.add(result.toString());
+                }
+
+                assertThat(resultTimes)
+                        .named(String.format("(%s -> %s)", fromName, toName))
+                        .isEqualTo(expectTimes);
+            }
         }
-        return list;
-    }
-
-    private static int formatTime(DayTime dayTime) {
-        long seconds = dayTime.toSecondsSinceMidnight();
-        long hours = seconds / 60 / 60;
-        long minutes = seconds / 60 % 60;
-        return (int) (hours * 100 + minutes);
     }
 }

@@ -35,10 +35,6 @@ class DayTime : Comparable<DayTime> {
         return another.minutesSinceMidnight - this.minutesSinceMidnight
     }
 
-    fun after(another: DayTime): Boolean {
-        return this > another
-    }
-
     companion object {
 
         fun now(): DayTime {
