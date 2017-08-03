@@ -102,63 +102,39 @@ public class ScheduleDatabaseTest {
     }
 
     @Test
-    public void test_weekdayNB() {
+    public void test_today() {
+        today = Calendar.getInstance();
+        testToday();
+    }
+
+    @Test
+    public void test_weekday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 2);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
 
-        testSchedule(getData("weekday_nb_tt.json"));
+        testToday();
     }
 
     @Test
-    public void test_weekdaySB() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 2);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
-
-        testSchedule(getData("weekday_sb_tt.json"));
-    }
-
-    @Test
-    public void test_saturdayNB() {
+    public void test_saturday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 5);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
 
-        testSchedule(getData("weekend_nb_tt.json"));
+        testToday();
     }
 
     @Test
-    public void test_saturdaySB() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 5);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
-
-        testSchedule(getData("weekend_sb_tt.json"));
-    }
-
-    @Test
-    public void test_sundayNB() {
+    public void test_sunday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 6);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
 
-        testSchedule(getData("weekend_nb_tt.json"));
-    }
-
-    @Test
-    public void test_sundaySB() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 6);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
-
-        testSchedule(getData("weekend_sb_tt.json"));
+        testToday();
     }
 
     private static class StopTime {
@@ -185,27 +161,33 @@ public class ScheduleDatabaseTest {
         return String.format(Locale.US, "%02d:%s", hours, split[1]);
     }
 
-    private void testSchedule(List<ScheduleRow> schedules) {
-        @ScheduleDao.ServiceType int type;
-        boolean isSaturday = false;
+    private void testToday() {
         switch (today.get(Calendar.DAY_OF_WEEK)) {
             case Calendar.MONDAY:
             case Calendar.TUESDAY:
             case Calendar.WEDNESDAY:
             case Calendar.THURSDAY:
             case Calendar.FRIDAY:
-                type = ScheduleDao.SERVICE_WEEKDAY;
+                testSchedule("weekday_nb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
+                testSchedule("weekday_sb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
                 break;
             case Calendar.SATURDAY:
-                type = ScheduleDao.SERVICE_SATURDAY;
-                isSaturday = true;
+                testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SATURDAY);
+                testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SATURDAY);
                 break;
             case Calendar.SUNDAY:
-                type = ScheduleDao.SERVICE_SUNDAY;
+                testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SUNDAY);
+                testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SUNDAY);
                 break;
             default:
                 throw new IllegalStateException("Unknown day of week");
         }
+
+    }
+
+    private void testSchedule(String filename, @ScheduleDao.ServiceType int type) {
+        List<ScheduleRow> schedules = getData(filename);
+        boolean isSaturday = type == ScheduleDao.SERVICE_SATURDAY;
 
         for (int i = schedules.size() - 1; i >= 0; i--) {
             ScheduleRow to = schedules.get(i);
