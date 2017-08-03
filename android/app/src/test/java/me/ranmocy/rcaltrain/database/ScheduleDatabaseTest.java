@@ -137,6 +137,34 @@ public class ScheduleDatabaseTest {
         testToday();
     }
 
+    @Test
+    public void test_now() {
+        today.clear();
+        today.set(2017, 7/*0-based*/, 1);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170801);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.TUESDAY);
+
+        assertThat(now.toString()).isEqualTo("09:59");
+
+        List<String> results = mapResults(db.getResultsTesting("San Francisco", "22nd St", ScheduleDao.SERVICE_NOW, today, now));
+
+        assertThat(results).containsExactly(
+                "10:00 => 10:04",
+                "11:00 => 11:04",
+                "12:00 => 12:04",
+                "13:00 => 13:04",
+                "14:00 => 14:04",
+                "15:00 => 15:04",
+                "16:32 => 16:36",
+                "17:32 => 17:36",
+                "18:32 => 18:36",
+                "19:30 => 19:34",
+                "20:30 => 20:34",
+                "21:30 => 21:34",
+                "22:40 => 22:44",
+                "00:05 => 00:10").inOrder();
+    }
+
     private static class StopTime {
         String service_type;
         String time;
@@ -159,6 +187,14 @@ public class ScheduleDatabaseTest {
         String[] split = time.split(":");
         int hours = Integer.parseInt(split[0]) % 24;
         return String.format(Locale.US, "%02d:%s", hours, split[1]);
+    }
+
+    private List<String> mapResults(List<ScheduleResult> results) {
+        List<String> resultTimes = new ArrayList<>();
+        for (ScheduleResult result : results) {
+            resultTimes.add(result.toString());
+        }
+        return resultTimes;
     }
 
     private void testToday() {
@@ -229,12 +265,11 @@ public class ScheduleDatabaseTest {
                 }
 
                 // get results
-                List<ScheduleResult> results = db.getResultsTesting(fromName, toName, type, today, now);
-                List<String> resultTimes = new ArrayList<>();
-                for (ScheduleResult result : results) {
-                    resultTimes.add(result.toString());
-                }
+                List<String> resultTimes = mapResults(db.getResultsTesting(fromName, toName, type, today, now));
 
+                if (Objects.equals(fromName, "22nd St") && Objects.equals(toName, "San Francisco")) {
+                    assertThat(true).isTrue();
+                }
                 assertThat(resultTimes)
                         .named(String.format("(%s -> %s)", fromName, toName))
                         .isEqualTo(expectTimes);
