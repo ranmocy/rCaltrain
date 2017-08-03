@@ -25,6 +25,11 @@ public interface ScheduleDao {
     @interface ServiceType {
     }
 
+    @Insert
+    void insert(
+            List<Station> stations, List<Service> services, List<ServiceDate> serviceDates,
+            List<Trip> trips, List<Stop> stops);
+
     @Query("SELECT DISTINCT name from stations ORDER BY id")
     LiveData<List<String>> getStationNames();
 
@@ -33,12 +38,11 @@ public interface ScheduleDao {
             String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    @Query("SELECT DISTINCT name from stations ORDER BY id")
+    List<String> getStationNamesSync();
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     @Query(QueriesKt.QUERY)
     List<ScheduleResult> getResultsSync(
             String from, String to, @ServiceType int serviceType, Calendar today, DayTime now);
-
-    @Insert
-    void insert(
-            List<Station> stations, List<Service> services, List<ServiceDate> serviceDates,
-            List<Trip> trips, List<Stop> stops);
 }

@@ -5,7 +5,6 @@ import android.arch.lifecycle.LifecycleRegistryOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.annotation.VisibleForTesting
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -156,8 +155,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
                 .show()
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun reschedule() {
+    private fun reschedule() {
         val departure = departureView.text.toString()
         val destination = arrivalView.text.toString()
 
