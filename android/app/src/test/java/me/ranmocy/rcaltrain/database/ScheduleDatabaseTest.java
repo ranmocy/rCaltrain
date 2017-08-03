@@ -1,7 +1,5 @@
 package me.ranmocy.rcaltrain.database;
 
-import android.arch.persistence.room.Room;
-import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
@@ -15,9 +13,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.annotation.Implementation;
-import org.robolectric.annotation.Implements;
-import org.robolectric.annotation.Resetter;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -33,38 +28,13 @@ import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
+import me.ranmocy.rcaltrain.shadows.ShadowScheduleDatabase;
 
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 17, shadows = {ScheduleDatabaseTest.ShadowScheduleDatabase.class})
+@Config(constants = BuildConfig.class, sdk = 17, shadows = {ShadowScheduleDatabase.class})
 public class ScheduleDatabaseTest {
-
-    @Implements(ScheduleDatabase.class)
-    public static final class ShadowScheduleDatabase {
-        private static ScheduleDatabase instance = null;
-
-        private static final Object LOCK = new Object();
-
-        @Implementation
-        public static ScheduleDatabase get(Context context) {
-            synchronized (LOCK) {
-                if (instance == null) {
-                    instance = Room
-                            .inMemoryDatabaseBuilder(context.getApplicationContext(), ScheduleDatabase.class)
-                            .allowMainThreadQueries()
-                            .build();
-                }
-            }
-            return instance;
-        }
-
-        @Resetter
-        static void reset() {
-            instance.close();
-            instance = null;
-        }
-    }
 
     private static final Gson GSON = new Gson();
 

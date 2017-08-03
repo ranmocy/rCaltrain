@@ -8,6 +8,7 @@ import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import junit.framework.Assert.assertEquals
 import me.ranmocy.rcaltrain.models.ScheduleResult
+import me.ranmocy.rcaltrain.shadows.ShadowAlertDialogV7
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

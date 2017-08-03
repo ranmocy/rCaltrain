@@ -1,4 +1,4 @@
-package me.ranmocy.rcaltrain
+package me.ranmocy.rcaltrain.shadows
 
 import android.support.v7.app.AlertDialog
 import android.widget.Adapter
