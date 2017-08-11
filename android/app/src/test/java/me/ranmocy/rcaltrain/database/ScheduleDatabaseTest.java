@@ -72,39 +72,63 @@ public class ScheduleDatabaseTest {
     }
 
     @Test
-    public void test_today() {
-        today = Calendar.getInstance();
-        testToday();
+    public void test_stationName() {
+        List<ScheduleRow> schedules = getData("weekday_sb_tt.json");
+        List<String> weekday = new ArrayList<>();
+        for (ScheduleRow schedule : schedules) {
+            weekday.add(schedule.name);
+        }
+        schedules = getData("weekend_sb_tt.json");
+        List<String> weekend = new ArrayList<>();
+        for (ScheduleRow schedule : schedules) {
+            weekend.add(schedule.name);
+        }
+
+        List<String> actual = db.getStationNamesTesting();
+        assertThat(actual).containsAllIn(weekday).inOrder();
+        assertThat(actual).containsAllIn(weekend).inOrder();
     }
 
     @Test
-    public void test_weekday() {
+    public void test_today() {
+        today = Calendar.getInstance();
+        testSchedule(ScheduleDao.SERVICE_NOW);
+    }
+
+    @Test
+    public void test_whenWeekday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 2);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
 
-        testToday();
+        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.SERVICE_SUNDAY);
     }
 
     @Test
-    public void test_saturday() {
+    public void test_whenSaturday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 5);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
 
-        testToday();
+        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.SERVICE_SUNDAY);
     }
 
     @Test
-    public void test_sunday() {
+    public void test_whenSunday() {
         today.clear();
         today.set(2017, 7/*0-based*/, 6);
         assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
 
-        testToday();
+        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.SERVICE_SUNDAY);
     }
 
     @Test
@@ -135,6 +159,32 @@ public class ScheduleDatabaseTest {
                 "00:05 => 00:10").inOrder();
     }
 
+    @Test
+    public void test() {
+        today.clear();
+        today.set(2017, 7/*0-based*/, 1);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20170801);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.TUESDAY);
+
+        assertThat(now.toString()).isEqualTo("09:59");
+
+        List<String> results = mapResults(db.getResultsTesting("San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, now));
+
+        assertThat(results).containsExactly(
+                "08:07 => 08:11",
+                "09:37 => 09:41",
+                "11:07 => 11:11",
+                "12:37 => 12:41",
+                "14:07 => 14:11",
+                "15:37 => 15:41",
+                "17:07 => 17:11",
+                "18:37 => 18:41",
+                "20:07 => 20:11",
+                "21:37 => 21:41",
+                "22:51 => 22:55",
+                "00:05 => 00:10").inOrder();
+    }
+
     private static class StopTime {
         String service_type;
         String time;
@@ -149,7 +199,8 @@ public class ScheduleDatabaseTest {
         InputStream inputStream = ScheduleDatabaseTest.class.getClassLoader().getResourceAsStream(filename);
         Scanner s = new Scanner(inputStream).useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";
-        return GSON.fromJson(result, (new TypeToken<List<ScheduleRow>>() {}).getType());
+        return GSON.fromJson(result, (new TypeToken<List<ScheduleRow>>() {
+        }).getType());
     }
 
     // fix time format 24:05 => 00:05
@@ -167,28 +218,42 @@ public class ScheduleDatabaseTest {
         return resultTimes;
     }
 
-    private void testToday() {
-        switch (today.get(Calendar.DAY_OF_WEEK)) {
-            case Calendar.MONDAY:
-            case Calendar.TUESDAY:
-            case Calendar.WEDNESDAY:
-            case Calendar.THURSDAY:
-            case Calendar.FRIDAY:
+    private void testSchedule(@ScheduleDao.ServiceType int type) {
+        switch (type) {
+            case ScheduleDao.SERVICE_WEEKDAY:
                 testSchedule("weekday_nb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
                 testSchedule("weekday_sb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
                 break;
-            case Calendar.SATURDAY:
+            case ScheduleDao.SERVICE_SATURDAY:
                 testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SATURDAY);
                 testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SATURDAY);
                 break;
-            case Calendar.SUNDAY:
+            case ScheduleDao.SERVICE_SUNDAY:
                 testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SUNDAY);
                 testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SUNDAY);
+                break;
+            case ScheduleDao.SERVICE_NOW:
+                switch (today.get(Calendar.DAY_OF_WEEK)) {
+                    case Calendar.MONDAY:
+                    case Calendar.TUESDAY:
+                    case Calendar.WEDNESDAY:
+                    case Calendar.THURSDAY:
+                    case Calendar.FRIDAY:
+                        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
+                        break;
+                    case Calendar.SATURDAY:
+                        testSchedule(ScheduleDao.SERVICE_SATURDAY);
+                        break;
+                    case Calendar.SUNDAY:
+                        testSchedule(ScheduleDao.SERVICE_SUNDAY);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown day of week");
+                }
                 break;
             default:
                 throw new IllegalStateException("Unknown day of week");
         }
-
     }
 
     private void testSchedule(String filename, @ScheduleDao.ServiceType int type) {

@@ -31,8 +31,8 @@ SELECT f.time AS departureTime, t.time AS arrivalTime
                        WHEN $SERVICE_SUNDAY THEN sunday
                        ELSE NULL
                        END
-                   AND (id NOT IN (SELECT service_id FROM service_dates WHERE date = :today AND type = 2)
-                        AND :today BETWEEN start_date AND end_date
+                   AND ((:today BETWEEN start_date AND end_date
+                        AND id NOT IN (SELECT service_id FROM service_dates WHERE date = :today AND type = 2))
                         OR id IN (SELECT service_id FROM service_dates WHERE date = :today AND type = 1))))
 ORDER BY departureTime
 """

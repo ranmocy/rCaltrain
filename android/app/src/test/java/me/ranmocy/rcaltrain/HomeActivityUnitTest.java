@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import me.ranmocy.rcaltrain.database.ScheduleDatabase;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 import me.ranmocy.rcaltrain.shadows.ShadowAlertDialogV7;
@@ -61,25 +60,15 @@ public final class HomeActivityUnitTest {
     }
 
     @Test
-    public void test_stationList() {
-        ScheduleDatabase db = ScheduleDatabase.get(RuntimeEnvironment.application);
-        List<String> stationNames = db.getStationNamesTesting();
-        for (String stationName : stationNames) {
-            arrivalInput.performClick();
-            clickStation(stationName);
-            departureInput.performClick();
-            clickStation(stationName);
-        }
-    }
-
-    @Test
     public void test() {
         today.clear();
         today.set(2017, 7/*0-based*/, 5); // 20170805
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
 
-        departureInput.setText("22nd St");
-        arrivalInput.setText("San Francisco");
+        arrivalInput.performClick();
+        clickStation("22nd St");
+        departureInput.performClick();
+        clickStation("San Francisco");
         btnSat.performClick();
 
         ListAdapter resultsAdapter = results.getAdapter();
