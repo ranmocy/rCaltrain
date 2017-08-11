@@ -11,9 +11,9 @@
 		<key>start_date</key>
 		<integer>20170715</integer>
 		<key>sunday</key>
-		<false/>
+		<true/>
 		<key>weekday</key>
-		<false/>
+		<true/>
 	</dict>
 	<key>CT-17JUL-Caltrain-Sunday-01</key>
 	<dict>
