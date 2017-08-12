@@ -6,6 +6,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,16 +22,12 @@ import java.util.List;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 import me.ranmocy.rcaltrain.shadows.ShadowAlertDialogV7;
-import me.ranmocy.rcaltrain.shadows.ShadowScheduleDatabase;
+import me.ranmocy.rcaltrain.testing.DatabaseTesting;
 
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(
-        constants = BuildConfig.class,
-        sdk = 25,
-        shadows = {ShadowAlertDialogV7.class, ShadowScheduleDatabase.class}
-)
+@Config(constants = BuildConfig.class, sdk = 25, shadows = {ShadowAlertDialogV7.class})
 public final class HomeActivityUnitTest {
 
     private Calendar today;
@@ -45,8 +42,15 @@ public final class HomeActivityUnitTest {
 
     @Before
     public void setup() {
+        DatabaseTesting.setTestingInstance(RuntimeEnvironment.application);
+
         today = Calendar.getInstance();
+        today.clear();
+        today.set(2017, 7/*0-based*/, 5); // 20170805
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
+
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
+
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
 
@@ -59,12 +63,13 @@ public final class HomeActivityUnitTest {
         results = activity.findViewById(R.id.results);
     }
 
+    @After
+    public void reset() {
+        DatabaseTesting.reset();
+    }
+
     @Test
     public void test() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 5); // 20170805
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
-
         arrivalInput.performClick();
         clickStation("22nd St");
         departureInput.performClick();
@@ -79,25 +84,26 @@ public final class HomeActivityUnitTest {
         }
 
         assertThat(resultTimes)
-                .containsExactly(
-                        "08:07 => 08:11",
-                        "09:37 => 09:41",
-                        "11:07 => 11:11",
-                        "12:37 => 12:41",
-                        "14:07 => 14:11",
-                        "15:37 => 15:41",
-                        "17:07 => 17:11",
-                        "18:37 => 18:41",
-                        "20:07 => 20:11",
-                        "21:37 => 21:41",
-                        "22:51 => 22:55",
-                        "00:05 => 00:10")
+                .containsExactly("08:07 => 08:11",
+                                 "09:37 => 09:41",
+                                 "11:07 => 11:11",
+                                 "12:37 => 12:41",
+                                 "14:07 => 14:11",
+                                 "15:37 => 15:41",
+                                 "17:07 => 17:11",
+                                 "18:37 => 18:41",
+                                 "20:07 => 20:11",
+                                 "21:37 => 21:41",
+                                 "22:51 => 22:55",
+                                 "00:05 => 00:10")
                 .inOrder();
     }
 
     private void clickStation(String station) {
-        //        Shadows.shadowOf(ShadowAlertDialogV7.getLatestAlertDialog().getListView()).clickFirstItemContainingText(station);
-        ShadowAlertDialogV7 shadowAlertDialog = ShadowAlertDialogV7.Companion.getLatestShadowAlertDialog();
+        //        Shadows.shadowOf(ShadowAlertDialogV7.getLatestAlertDialog().getListView())
+        // .clickFirstItemContainingText(station);
+        ShadowAlertDialogV7 shadowAlertDialog = ShadowAlertDialogV7.Companion
+                .getLatestShadowAlertDialog();
         assertThat(shadowAlertDialog).isNotNull();
         Adapter adapter = shadowAlertDialog.getAdapter();
         for (int i = adapter.getCount() - 1; i >= 0; i--) {

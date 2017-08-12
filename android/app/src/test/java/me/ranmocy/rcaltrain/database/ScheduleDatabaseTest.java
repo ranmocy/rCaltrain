@@ -30,12 +30,12 @@ import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
-import me.ranmocy.rcaltrain.shadows.ShadowScheduleDatabase;
+import me.ranmocy.rcaltrain.testing.DatabaseTesting;
 
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 17, shadows = {ShadowScheduleDatabase.class})
+@Config(constants = BuildConfig.class, sdk = 17)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
@@ -48,7 +48,7 @@ public class ScheduleDatabaseTest {
     public void setup() {
         today = Calendar.getInstance();
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
-        db = ScheduleDatabase.get(RuntimeEnvironment.application);
+        db = DatabaseTesting.setTestingInstance(RuntimeEnvironment.application);
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
     }
@@ -56,7 +56,7 @@ public class ScheduleDatabaseTest {
     @After
     public void clean() {
         db.close();
-        ShadowScheduleDatabase.reset();
+        DatabaseTesting.reset();
     }
 
     @Test
