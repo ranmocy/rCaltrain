@@ -93,31 +93,31 @@ public class ScheduleDatabaseTest {
     @Test
     public void test_today() {
         today = Calendar.getInstance();
-        testSchedule(ScheduleDao.SERVICE_NOW);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_NOW);
     }
 
     @Test
     public void test_whenWeekday() {
-        setToday(ScheduleDao.SERVICE_WEEKDAY);
-        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
-        testSchedule(ScheduleDao.SERVICE_SATURDAY);
-        testSchedule(ScheduleDao.SERVICE_SUNDAY);
+        setToday(ScheduleDao.ServiceType.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SUNDAY);
     }
 
     @Test
     public void test_whenSaturday() {
-        setToday(ScheduleDao.SERVICE_SATURDAY);
-        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
-        testSchedule(ScheduleDao.SERVICE_SATURDAY);
-        testSchedule(ScheduleDao.SERVICE_SUNDAY);
+        setToday(ScheduleDao.ServiceType.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SUNDAY);
     }
 
     @Test
     public void test_whenSunday() {
-        setToday(ScheduleDao.SERVICE_SUNDAY);
-        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
-        testSchedule(ScheduleDao.SERVICE_SATURDAY);
-        testSchedule(ScheduleDao.SERVICE_SUNDAY);
+        setToday(ScheduleDao.ServiceType.SERVICE_SUNDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_WEEKDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SATURDAY);
+        testSchedule(ScheduleDao.ServiceType.SERVICE_SUNDAY);
     }
 
     @Test
@@ -129,7 +129,7 @@ public class ScheduleDatabaseTest {
 
         assertThat(now.toString()).isEqualTo("09:59");
 
-        List<String> results = mapResults(db.getResultsTesting("San Francisco", "22nd St", ScheduleDao.SERVICE_NOW, today, now));
+        List<String> results = mapResults(db.getResultsTesting("San Francisco", "22nd St", ScheduleDao.ServiceType.SERVICE_NOW, today, now));
 
         assertThat(results).containsExactly(
                 "10:00 => 10:04",
@@ -157,7 +157,7 @@ public class ScheduleDatabaseTest {
         assertThat(now.toString()).isEqualTo("09:59");
 
         List<ScheduleResult> resultsSync = db.scheduleDao().getResultsSync(
-                "San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, null);
+                "San Francisco", "22nd St", ScheduleDao.ServiceType.SERVICE_SATURDAY, today, null);
         List<String> results = mapResults(resultsSync);
 //        List<String> results = mapResults(db.getResultsTesting(
 // "San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, now));
@@ -183,22 +183,22 @@ public class ScheduleDatabaseTest {
     private void setToday(@ScheduleDao.ServiceType int type) {
         int day = 0;
         switch (type) {
-            case ScheduleDao.SERVICE_WEEKDAY:
+            case ScheduleDao.ServiceType.SERVICE_WEEKDAY:
                 today.clear();
                 today.set(2017, 6/*0-based*/, 19);
                 day = Calendar.WEDNESDAY;
                 break;
-            case ScheduleDao.SERVICE_SATURDAY:
+            case ScheduleDao.ServiceType.SERVICE_SATURDAY:
                 today.clear();
                 today.set(2017, 6/*0-based*/, 22);
                 day = Calendar.SATURDAY;
                 break;
-            case ScheduleDao.SERVICE_SUNDAY:
+            case ScheduleDao.ServiceType.SERVICE_SUNDAY:
                 today.clear();
                 today.set(2017, 6/*0-based*/, 23);
                 day = Calendar.SUNDAY;
                 break;
-            case ScheduleDao.SERVICE_NOW:
+            case ScheduleDao.ServiceType.SERVICE_NOW:
             default:
                 return;
         }
@@ -244,32 +244,32 @@ public class ScheduleDatabaseTest {
 
     private void testSchedule(@ScheduleDao.ServiceType int type) {
         switch (type) {
-            case ScheduleDao.SERVICE_WEEKDAY:
-                testSchedule("weekday_nb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
-                testSchedule("weekday_sb_tt.json", ScheduleDao.SERVICE_WEEKDAY);
+            case ScheduleDao.ServiceType.SERVICE_WEEKDAY:
+                testSchedule("weekday_nb_tt.json", ScheduleDao.ServiceType.SERVICE_WEEKDAY);
+                testSchedule("weekday_sb_tt.json", ScheduleDao.ServiceType.SERVICE_WEEKDAY);
                 break;
-            case ScheduleDao.SERVICE_SATURDAY:
-                testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SATURDAY);
-                testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SATURDAY);
+            case ScheduleDao.ServiceType.SERVICE_SATURDAY:
+                testSchedule("weekend_nb_tt.json", ScheduleDao.ServiceType.SERVICE_SATURDAY);
+                testSchedule("weekend_sb_tt.json", ScheduleDao.ServiceType.SERVICE_SATURDAY);
                 break;
-            case ScheduleDao.SERVICE_SUNDAY:
-                testSchedule("weekend_nb_tt.json", ScheduleDao.SERVICE_SUNDAY);
-                testSchedule("weekend_sb_tt.json", ScheduleDao.SERVICE_SUNDAY);
+            case ScheduleDao.ServiceType.SERVICE_SUNDAY:
+                testSchedule("weekend_nb_tt.json", ScheduleDao.ServiceType.SERVICE_SUNDAY);
+                testSchedule("weekend_sb_tt.json", ScheduleDao.ServiceType.SERVICE_SUNDAY);
                 break;
-            case ScheduleDao.SERVICE_NOW:
+            case ScheduleDao.ServiceType.SERVICE_NOW:
                 switch (today.get(Calendar.DAY_OF_WEEK)) {
                     case Calendar.MONDAY:
                     case Calendar.TUESDAY:
                     case Calendar.WEDNESDAY:
                     case Calendar.THURSDAY:
                     case Calendar.FRIDAY:
-                        testSchedule(ScheduleDao.SERVICE_WEEKDAY);
+                        testSchedule(ScheduleDao.ServiceType.SERVICE_WEEKDAY);
                         break;
                     case Calendar.SATURDAY:
-                        testSchedule(ScheduleDao.SERVICE_SATURDAY);
+                        testSchedule(ScheduleDao.ServiceType.SERVICE_SATURDAY);
                         break;
                     case Calendar.SUNDAY:
-                        testSchedule(ScheduleDao.SERVICE_SUNDAY);
+                        testSchedule(ScheduleDao.ServiceType.SERVICE_SUNDAY);
                         break;
                     default:
                         throw new IllegalStateException("Unknown day of week");
@@ -282,7 +282,7 @@ public class ScheduleDatabaseTest {
 
     private void testSchedule(String filename, @ScheduleDao.ServiceType int type) {
         List<ScheduleRow> schedules = getData(filename);
-        boolean isSaturday = type == ScheduleDao.SERVICE_SATURDAY;
+        boolean isSaturday = type == ScheduleDao.ServiceType.SERVICE_SATURDAY;
 
         for (int i = schedules.size() - 1; i >= 0; i--) {
             ScheduleRow to = schedules.get(i);

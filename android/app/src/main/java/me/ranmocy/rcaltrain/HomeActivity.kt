@@ -58,10 +58,10 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
         departureView.text = preferences.lastDepartureStationName
         arrivalView.text = preferences.lastDestinationStationName
         when (preferences.lastScheduleType) {
-            ScheduleDao.SERVICE_NOW -> scheduleGroup.check(R.id.btn_now)
-            ScheduleDao.SERVICE_WEEKDAY -> scheduleGroup.check(R.id.btn_week)
-            ScheduleDao.SERVICE_SATURDAY -> scheduleGroup.check(R.id.btn_sat)
-            ScheduleDao.SERVICE_SUNDAY -> scheduleGroup.check(R.id.btn_sun)
+            ScheduleDao.ServiceType.SERVICE_NOW -> scheduleGroup.check(R.id.btn_now)
+            ScheduleDao.ServiceType.SERVICE_WEEKDAY -> scheduleGroup.check(R.id.btn_week)
+            ScheduleDao.ServiceType.SERVICE_SATURDAY -> scheduleGroup.check(R.id.btn_sat)
+            ScheduleDao.ServiceType.SERVICE_SUNDAY -> scheduleGroup.check(R.id.btn_sun)
         }
 
         scheduleViewModel.getStations(this).observe(this, Observer { stationNames -> stationsAdapter.setData(stationNames ?: ArrayList<String>()) })
@@ -113,20 +113,20 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
                 firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.clickSwitchEvent)
             }
             R.id.btn_now -> {
-                preferences.lastScheduleType = ScheduleDao.SERVICE_NOW
-                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.SERVICE_NOW))
+                preferences.lastScheduleType = ScheduleDao.ServiceType.SERVICE_NOW
+                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.ServiceType.SERVICE_NOW))
             }
             R.id.btn_week -> {
-                preferences.lastScheduleType = ScheduleDao.SERVICE_WEEKDAY
-                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.SERVICE_WEEKDAY))
+                preferences.lastScheduleType = ScheduleDao.ServiceType.SERVICE_WEEKDAY
+                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.ServiceType.SERVICE_WEEKDAY))
             }
             R.id.btn_sat -> {
-                preferences.lastScheduleType = ScheduleDao.SERVICE_SATURDAY
-                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.SERVICE_SATURDAY))
+                preferences.lastScheduleType = ScheduleDao.ServiceType.SERVICE_SATURDAY
+                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.ServiceType.SERVICE_SATURDAY))
             }
             R.id.btn_sun -> {
-                preferences.lastScheduleType = ScheduleDao.SERVICE_SUNDAY
-                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.SERVICE_SUNDAY))
+                preferences.lastScheduleType = ScheduleDao.ServiceType.SERVICE_SUNDAY
+                firebaseAnalytics.logEvent(Events.EVENT_ON_CLICK, Events.getClickScheduleEvent(ScheduleDao.ServiceType.SERVICE_SUNDAY))
             }
             R.id.schedule_group -> {
                 Log.v(TAG, "schedule_group")
@@ -166,10 +166,10 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
                 Log.v(TAG, "No schedule selected, skip.")
                 return
             }
-            R.id.btn_now -> scheduleType = ScheduleDao.SERVICE_NOW
-            R.id.btn_week -> scheduleType = ScheduleDao.SERVICE_WEEKDAY
-            R.id.btn_sat -> scheduleType = ScheduleDao.SERVICE_SATURDAY
-            R.id.btn_sun -> scheduleType = ScheduleDao.SERVICE_SUNDAY
+            R.id.btn_now -> scheduleType = ScheduleDao.ServiceType.SERVICE_NOW
+            R.id.btn_week -> scheduleType = ScheduleDao.ServiceType.SERVICE_WEEKDAY
+            R.id.btn_sat -> scheduleType = ScheduleDao.ServiceType.SERVICE_SATURDAY
+            R.id.btn_sun -> scheduleType = ScheduleDao.ServiceType.SERVICE_SUNDAY
             else -> throw RuntimeException("Unexpected schedule selection:" + scheduleGroup.checkedRadioButtonId)
         }
 

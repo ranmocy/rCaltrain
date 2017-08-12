@@ -24,6 +24,6 @@ class Preferences(context: Context) {
         set(stationName) = preferences.edit().putString(LAST_DESTINATION_STATION_NAME, stationName).apply()
 
     var lastScheduleType: Int
-        @ScheduleDao.ServiceType get() = preferences.getInt(LAST_SCHEDULE_TYPE, ScheduleDao.SERVICE_NOW)
+        @ScheduleDao.ServiceType get() = preferences.getInt(LAST_SCHEDULE_TYPE, ScheduleDao.ServiceType.SERVICE_NOW)
         set(type) = preferences.edit().putInt(LAST_SCHEDULE_TYPE, type).apply()
 }

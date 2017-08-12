@@ -16,13 +16,17 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 @Dao
 public interface ScheduleDao {
 
-    int SERVICE_NOW = 0;
-    int SERVICE_WEEKDAY = 1;
-    int SERVICE_SATURDAY = 2;
-    int SERVICE_SUNDAY = 3;
-
-    @IntDef({SERVICE_NOW, SERVICE_WEEKDAY, SERVICE_SATURDAY, SERVICE_SUNDAY})
+    @IntDef({
+            ServiceType.SERVICE_NOW,
+            ServiceType.SERVICE_WEEKDAY,
+            ServiceType.SERVICE_SATURDAY,
+            ServiceType.SERVICE_SUNDAY
+    })
     @interface ServiceType {
+        int SERVICE_NOW = 0;
+        int SERVICE_WEEKDAY = 1;
+        int SERVICE_SATURDAY = 2;
+        int SERVICE_SUNDAY = 3;
     }
 
     @Insert

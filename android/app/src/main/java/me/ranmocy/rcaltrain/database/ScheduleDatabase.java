@@ -99,7 +99,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     }
 
     private Input getInput(@ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
-        if (serviceType == ScheduleDao.SERVICE_NOW) {
+        if (serviceType == ScheduleDao.ServiceType.SERVICE_NOW) {
             int dayOfWeek = today.get(Calendar.DAY_OF_WEEK);
             switch (dayOfWeek) {
                 case Calendar.MONDAY:
@@ -107,13 +107,13 @@ public abstract class ScheduleDatabase extends RoomDatabase {
                 case Calendar.WEDNESDAY:
                 case Calendar.THURSDAY:
                 case Calendar.FRIDAY:
-                    serviceType = ScheduleDao.SERVICE_WEEKDAY;
+                    serviceType = ScheduleDao.ServiceType.SERVICE_WEEKDAY;
                     break;
                 case Calendar.SATURDAY:
-                    serviceType = ScheduleDao.SERVICE_SATURDAY;
+                    serviceType = ScheduleDao.ServiceType.SERVICE_SATURDAY;
                     break;
                 case Calendar.SUNDAY:
-                    serviceType = ScheduleDao.SERVICE_SUNDAY;
+                    serviceType = ScheduleDao.ServiceType.SERVICE_SUNDAY;
                     break;
                 default:
                     throw new RuntimeException("Unexpected dayOfWeek:" + dayOfWeek);

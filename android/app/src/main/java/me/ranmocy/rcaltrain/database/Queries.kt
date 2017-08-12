@@ -26,9 +26,9 @@ SELECT f.time AS departureTime, t.time AS arrivalTime
                (SELECT id
                   FROM services
                  WHERE CASE :serviceType
-                       WHEN $SERVICE_WEEKDAY THEN weekday
-                       WHEN $SERVICE_SATURDAY THEN saturday
-                       WHEN $SERVICE_SUNDAY THEN sunday
+                       WHEN ${ServiceType.SERVICE_WEEKDAY} THEN weekday
+                       WHEN ${ServiceType.SERVICE_SATURDAY} THEN saturday
+                       WHEN ${ServiceType.SERVICE_SUNDAY} THEN sunday
                        ELSE NULL
                        END
                    AND ((:today BETWEEN start_date AND end_date
