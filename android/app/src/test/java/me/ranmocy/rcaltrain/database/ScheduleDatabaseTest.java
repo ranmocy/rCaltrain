@@ -307,7 +307,8 @@ public class ScheduleDatabaseTest {
                 }
                 assertThat(resultTimes)
                         .named(String.format("(%s -> %s)", fromName, toName))
-                        .isEqualTo(expectTimes);
+                        .containsExactlyElementsIn(expectTimes)
+                        .inOrder();
             }
         }
     }
