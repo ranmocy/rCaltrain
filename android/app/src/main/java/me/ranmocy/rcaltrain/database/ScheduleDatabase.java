@@ -16,16 +16,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Calendar;
 import java.util.List;
 
+import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 
-@Database(version = 1, entities = {
-        Service.class,
-        ServiceDate.class,
-        Station.class,
-        Stop.class,
-        Trip.class
-})
+@Database(version = 1, entities = {Service.class, ServiceDate.class, Station.class, Stop.class,
+        Trip.class})
 @TypeConverters({Converters.class})
 public abstract class ScheduleDatabase extends RoomDatabase {
 
@@ -37,7 +33,9 @@ public abstract class ScheduleDatabase extends RoomDatabase {
             synchronized (ScheduleDatabase.class) {
                 if (instance == null) {
                     instance = Room
-                            .databaseBuilder(context.getApplicationContext(), ScheduleDatabase.class, "schedule")
+                            .databaseBuilder(context.getApplicationContext(),
+                                             ScheduleDatabase.class,
+                                             "schedule")
                             .build();
                 }
             }
@@ -51,7 +49,8 @@ public abstract class ScheduleDatabase extends RoomDatabase {
         return scheduleDao().getStationNames();
     }
 
-    public LiveData<List<ScheduleResult>> getResults(String from, String to, @ScheduleDao.ServiceType int serviceType) {
+    public LiveData<List<ScheduleResult>> getResults(String from, String to, @ServiceType int
+            serviceType) {
         Log.i(TAG, "query results");
         Calendar today = Calendar.getInstance();
         DayTime now = DayTime.Companion.now();
@@ -60,23 +59,20 @@ public abstract class ScheduleDatabase extends RoomDatabase {
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    public List<String> getStationNamesTesting() {
+    List<String> getStationNamesTesting() {
         return scheduleDao().getStationNamesSync();
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    List<ScheduleResult> getResultsTesting(
-            String from, String to, @ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
+    List<ScheduleResult> getResultsTesting(String from, String to, @ServiceType int serviceType,
+                                           Calendar today, DayTime now) {
         Input input = getInput(serviceType, today, now);
         return scheduleDao().getResultsSync(from, to, input.serviceType, today, input.now);
     }
 
-    public void updateData(
-            @NotNull final List<Station> stations,
-            @NotNull final List<Service> services,
-            @NotNull final List<ServiceDate> serviceDates,
-            @NotNull final List<Trip> trips,
-            @NotNull final List<Stop> stops) {
+    public void updateData(@NotNull final List<Station> stations, @NotNull final List<Service>
+            services, @NotNull final List<ServiceDate> serviceDates, @NotNull final List<Trip>
+            trips, @NotNull final List<Stop> stops) {
         runInTransaction(new Runnable() {
             @Override
             public void run() {
@@ -98,28 +94,46 @@ public abstract class ScheduleDatabase extends RoomDatabase {
         });
     }
 
-    private Input getInput(@ScheduleDao.ServiceType int serviceType, Calendar today, DayTime now) {
-        if (serviceType == ScheduleDao.ServiceType.SERVICE_NOW) {
-            int dayOfWeek = today.get(Calendar.DAY_OF_WEEK);
+    private Input getInput(@ServiceType int serviceType, Calendar today, DayTime now) {
+        int dayOfWeek = today.get(Calendar.DAY_OF_WEEK);
+        if (serviceType == ServiceType.SERVICE_NOW) {
             switch (dayOfWeek) {
                 case Calendar.MONDAY:
                 case Calendar.TUESDAY:
                 case Calendar.WEDNESDAY:
                 case Calendar.THURSDAY:
                 case Calendar.FRIDAY:
-                    serviceType = ScheduleDao.ServiceType.SERVICE_WEEKDAY;
+                    serviceType = ServiceType.SERVICE_WEEKDAY;
                     break;
                 case Calendar.SATURDAY:
-                    serviceType = ScheduleDao.ServiceType.SERVICE_SATURDAY;
+                    serviceType = ServiceType.SERVICE_SATURDAY;
                     break;
                 case Calendar.SUNDAY:
-                    serviceType = ScheduleDao.ServiceType.SERVICE_SUNDAY;
+                    serviceType = ServiceType.SERVICE_SUNDAY;
                     break;
                 default:
                     throw new RuntimeException("Unexpected dayOfWeek:" + dayOfWeek);
             }
         } else {
             now = null;
+            int targetDayOfWeek;
+            switch (serviceType) {
+                case ServiceType.SERVICE_SATURDAY:
+                    targetDayOfWeek = Calendar.SATURDAY;
+                    break;
+                case ServiceType.SERVICE_SUNDAY:
+                    targetDayOfWeek = Calendar.SUNDAY;
+                    break;
+                case ServiceType.SERVICE_WEEKDAY:
+                    targetDayOfWeek = Calendar.FRIDAY;
+                    break;
+                //noinspection ConstantConditions
+                case ServiceType.SERVICE_NOW:
+                default:
+                    throw new RuntimeException("Unexpected dayOfWeek:" + dayOfWeek);
+            }
+            int diff = (targetDayOfWeek + 7 - dayOfWeek) % 7;
+            today.add(Calendar.DATE, diff);
         }
         return new Input(serviceType, now);
     }
