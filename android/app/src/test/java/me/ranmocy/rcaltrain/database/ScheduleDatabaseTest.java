@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
@@ -97,11 +98,7 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_whenWeekday() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 2);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170802);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.WEDNESDAY);
-
+        setToday(ScheduleDao.SERVICE_WEEKDAY);
         testSchedule(ScheduleDao.SERVICE_WEEKDAY);
         testSchedule(ScheduleDao.SERVICE_SATURDAY);
         testSchedule(ScheduleDao.SERVICE_SUNDAY);
@@ -109,11 +106,7 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_whenSaturday() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 5);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170805);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SATURDAY);
-
+        setToday(ScheduleDao.SERVICE_SATURDAY);
         testSchedule(ScheduleDao.SERVICE_WEEKDAY);
         testSchedule(ScheduleDao.SERVICE_SATURDAY);
         testSchedule(ScheduleDao.SERVICE_SUNDAY);
@@ -121,11 +114,7 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test_whenSunday() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 6);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170806);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.SUNDAY);
-
+        setToday(ScheduleDao.SERVICE_SUNDAY);
         testSchedule(ScheduleDao.SERVICE_WEEKDAY);
         testSchedule(ScheduleDao.SERVICE_SATURDAY);
         testSchedule(ScheduleDao.SERVICE_SUNDAY);
@@ -161,14 +150,17 @@ public class ScheduleDatabaseTest {
 
     @Test
     public void test() {
-        today.clear();
-        today.set(2017, 7/*0-based*/, 1);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170801);
-        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.TUESDAY);
+        // TODO: MAY HAVE ISSUE HERE
+//        setToday(ScheduleDao.SERVICE_SATURDAY);
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.FRIDAY);
 
         assertThat(now.toString()).isEqualTo("09:59");
 
-        List<String> results = mapResults(db.getResultsTesting("San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, now));
+        List<ScheduleResult> resultsSync = db.scheduleDao().getResultsSync(
+                "San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, null);
+        List<String> results = mapResults(resultsSync);
+//        List<String> results = mapResults(db.getResultsTesting(
+// "San Francisco", "22nd St", ScheduleDao.SERVICE_SATURDAY, today, now));
 
         assertThat(results).containsExactly(
                 "08:07 => 08:11",
@@ -183,6 +175,38 @@ public class ScheduleDatabaseTest {
                 "21:37 => 21:41",
                 "22:51 => 22:55",
                 "00:05 => 00:10").inOrder();
+    }
+
+    /**
+     * Set today to given type just in the future of real today.
+     */
+    private void setToday(@ScheduleDao.ServiceType int type) {
+        int day = 0;
+        switch (type) {
+            case ScheduleDao.SERVICE_WEEKDAY:
+                today.clear();
+                today.set(2017, 6/*0-based*/, 19);
+                day = Calendar.WEDNESDAY;
+                break;
+            case ScheduleDao.SERVICE_SATURDAY:
+                today.clear();
+                today.set(2017, 6/*0-based*/, 22);
+                day = Calendar.SATURDAY;
+                break;
+            case ScheduleDao.SERVICE_SUNDAY:
+                today.clear();
+                today.set(2017, 6/*0-based*/, 23);
+                day = Calendar.SUNDAY;
+                break;
+            case ScheduleDao.SERVICE_NOW:
+            default:
+                return;
+        }
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
+        long diff = Calendar.getInstance().getTimeInMillis() - today.getTimeInMillis();
+        int days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(diff) * 1.0 / 7);
+        today.setTimeInMillis(today.getTimeInMillis() + TimeUnit.DAYS.toMillis(days * 7));
+        assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
     }
 
     private static class StopTime {
