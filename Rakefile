@@ -355,10 +355,6 @@ task :prepare_data do
       .select { |service| valid_service_ids.include? service.service_id }
       .each { |service|
         warn "Outdated service #{service.service_id} ends at #{service.end_date}." if service.end_date < now_date
-        # .select { |service|
-        #   warn "Drop outdated service #{service.service_id} ends at #{service.end_date}." if service.end_date < now_date
-        #   service.end_date >= now_date
-        # }
       }
       .group_by(&:service_id)
       .mapHash { |service_id, items|
@@ -379,7 +375,8 @@ task :prepare_data do
         end
         if service_id.match(/saturday/i)
           unless weekday_sum == 0 and item.saturday == 1 and item.sunday != 1
-            require 'pry'; binding.pry
+            warn "Service `#{service_id}` does not match their schedule: #{item}"
+            # require 'pry'; binding.pry
           end
         end
         if service_id.match(/sunday/i)
@@ -403,14 +400,6 @@ task :prepare_data do
       .each { |service|
         warn "Outdated service_date service #{service.service_id} at #{service.date}." unless valid_service_ids.include? service.service_id
         warn "Outdated service_date #{service.service_id} at #{service.date}." if service.date < now_date
-        # .select { |service|
-        #   warn "Drop outdated service_date #{service.service_id} at #{service.date}." unless valid_service_ids.include? service.service_id
-        #   valid_service_ids.include? service.service_id
-        # }
-        # .select { |service|
-        #   warn "Drop outdated service_date #{service.service_id} at #{service.date}." if service.date < now_date
-        #   service.date >= now_date
-        # }
       }
       .group_by(&:service_id)
       .mapHash { |service_id, items|
