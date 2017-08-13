@@ -3,6 +3,7 @@ package me.ranmocy.rcaltrain.database;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 import android.util.Pair;
@@ -34,6 +35,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(AndroidJUnit4.class)
+@SmallTest
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
