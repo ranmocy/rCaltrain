@@ -1,20 +1,21 @@
 package me.ranmocy.rcaltrain.database;
 
+import android.arch.persistence.room.Room;
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 import android.util.Pair;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -25,17 +26,14 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
-import me.ranmocy.rcaltrain.testing.DatabaseTesting;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 17)
+@RunWith(AndroidJUnit4.class)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
@@ -48,32 +46,19 @@ public class ScheduleDatabaseTest {
     public void setup() {
         today = Calendar.getInstance();
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
-        db = DatabaseTesting.setTestingInstance(RuntimeEnvironment.application);
+        Context context = InstrumentationRegistry.getTargetContext();
+        db = Room.inMemoryDatabaseBuilder(context, ScheduleDatabase.class).build();
+
+        try {
+            Field field = ScheduleDatabase.class.getDeclaredField("instance");
+            field.setAccessible(true);
+            field.set(ScheduleDatabase.class, db);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(RuntimeEnvironment.application);
-    }
-
-    @After
-    public void clean() {
-        db.close();
-        DatabaseTesting.reset();
-    }
-
-    @Test
-    public void test_sqlite_version() {
-        // Robolectric ships with SQLite 3.7.10
-        // Android 4.1(16) ships with 3.7.11
-        String s = db
-                .getOpenHelper()
-                .getReadableDatabase()
-                .compileStatement("SELECT sqlite_version();")
-                .simpleQueryForString();
-        String[] split = s.split("\\.");
-        assertThat(split.length).isEqualTo(3);
-        int major = Integer.parseInt(split[0]);
-        int minor = Integer.parseInt(split[1]);
-        int build = Integer.parseInt(split[2]);
-        assertThat(major == 3 && minor == 7 && build == 10).isTrue();
+        DataLoader.Companion.loadDataAlways(context);
     }
 
     @Test
