@@ -24,15 +24,15 @@ class DayTime : Comparable<DayTime> {
                 minutesSinceMidnight / 60 % 24, minutesSinceMidnight % 60)
     }
 
+    fun toSecondsSinceMidnight(): Long {
+        return minutesSinceMidnight * 60
+    }
+
     /**
      * Returns the interval time in minutes from this [DayTime] to the given [DayTime].
      */
     fun toInMinutes(another: DayTime): Long {
         return another.minutesSinceMidnight - this.minutesSinceMidnight
-    }
-
-    fun after(another: DayTime): Boolean {
-        return this > another
     }
 
     companion object {

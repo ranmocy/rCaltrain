@@ -8,10 +8,8 @@ import android.widget.BaseAdapter
 import android.widget.ListAdapter
 import android.widget.TextView
 import me.ranmocy.rcaltrain.R
-import me.ranmocy.rcaltrain.Scheduler
 import me.ranmocy.rcaltrain.models.DayTime
 import me.ranmocy.rcaltrain.models.ScheduleResult
-import me.ranmocy.rcaltrain.models.ScheduleType
 import java.util.*
 
 /** ListAdapter that shows scheduling result. */
@@ -20,9 +18,9 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
     private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
     private val resultList = ArrayList<ScheduleResult>()
 
-    fun setData(fromName: String, toName: String, scheduleType: ScheduleType) {
+    fun setData(results: List<ScheduleResult>) {
         resultList.clear()
-        resultList.addAll(Scheduler.schedule(fromName, toName, scheduleType))
+        resultList.addAll(results)
         notifyDataSetChanged()
     }
 
@@ -57,17 +55,17 @@ class ResultsListAdapter(context: Context) : BaseAdapter(), ListAdapter {
         if (convertView == null) {
             view = layoutInflater.inflate(R.layout.result_item, parent, false)!!
             holder = ViewHolder()
-            holder.departureView = view.findViewById(R.id.departure_time) as TextView
-            holder.arrivalView = view.findViewById(R.id.arrival_time) as TextView
-            holder.intervalView = view.findViewById(R.id.interval_time) as TextView
+            holder.departureView = view.findViewById<TextView>(R.id.departure_time)
+            holder.arrivalView = view.findViewById<TextView>(R.id.arrival_time)
+            holder.intervalView = view.findViewById<TextView>(R.id.interval_time)
             view.tag = holder
         } else {
             view = convertView
             holder = view.tag as ViewHolder
         }
         val result = getItem(position)
-        holder.departureView!!.text = result.departureTimeString
-        holder.arrivalView!!.text = result.arrivalTimeString
+        holder.departureView!!.text = result.departureTime.toString()
+        holder.arrivalView!!.text = result.arrivalTime.toString()
         holder.intervalView!!.text = result.intervalTimeString
         return view
     }

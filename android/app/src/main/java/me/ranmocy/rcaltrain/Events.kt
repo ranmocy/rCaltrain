@@ -1,8 +1,7 @@
 package me.ranmocy.rcaltrain
 
 import android.os.Bundle
-
-import me.ranmocy.rcaltrain.models.ScheduleType
+import me.ranmocy.rcaltrain.database.ScheduleDao
 
 /** Events used for FirebaseAnalytics */
 internal object Events {
@@ -20,11 +19,11 @@ internal object Events {
     private val VALUE_CLICK_SWITCH = "value_click_switch"
     private val VALUE_CLICK_SCHEDULE = "value_click_schedule"
 
-    fun getScheduleEvent(departure: String, arrival: String, schedule: ScheduleType): Bundle {
+    fun getScheduleEvent(departure: String, arrival: String, @ScheduleDao.ServiceType schedule: Int): Bundle {
         val data = Bundle()
         data.putString(PARAM_DEPARTURE, departure)
         data.putString(PARAM_ARRIVAL, arrival)
-        data.putString(PARAM_SCHEDULE, schedule.name)
+        data.putInt(PARAM_SCHEDULE, schedule)
         return data
     }
 
@@ -49,10 +48,10 @@ internal object Events {
             return data
         }
 
-    fun getClickScheduleEvent(scheduleType: ScheduleType): Bundle {
+    fun getClickScheduleEvent(@ScheduleDao.ServiceType scheduleType: Int): Bundle {
         val data = Bundle()
         data.putString(PARAM_CLICKED_ELEM, VALUE_CLICK_SCHEDULE)
-        data.putString(PARAM_SCHEDULE, scheduleType.name)
+        data.putInt(PARAM_SCHEDULE, scheduleType)
         return data
     }
 }

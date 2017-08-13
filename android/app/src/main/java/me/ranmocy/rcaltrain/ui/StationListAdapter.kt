@@ -5,18 +5,28 @@ import android.database.DataSetObserver
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.ListAdapter
 import android.widget.TextView
 import me.ranmocy.rcaltrain.R
-import me.ranmocy.rcaltrain.models.Station
 import java.util.*
 
 /** Station list adapter. */
-class StationListAdapter(context: Context) : ListAdapter {
+class StationListAdapter(context: Context) : BaseAdapter(), ListAdapter {
 
-    private val stations = Station.allStations
+    private val stationNames = ArrayList<String>()
     private val observers = ArrayList<DataSetObserver>()
     private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
+
+    fun setData(data: List<String>) {
+        stationNames.clear()
+        stationNames.addAll(data)
+        notifyDataSetChanged()
+    }
+
+    fun getData(): List<String> {
+        return stationNames
+    }
 
     override fun areAllItemsEnabled(): Boolean {
         return true
@@ -35,11 +45,11 @@ class StationListAdapter(context: Context) : ListAdapter {
     }
 
     override fun getCount(): Int {
-        return stations.size
+        return stationNames.size
     }
 
-    override fun getItem(position: Int): Station {
-        return stations[position]
+    override fun getItem(position: Int): String {
+        return stationNames[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -52,7 +62,7 @@ class StationListAdapter(context: Context) : ListAdapter {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = convertView ?: layoutInflater.inflate(R.layout.station_item, parent, false)
-        (view as TextView).text = getItem(position).name
+        (view as TextView).text = getItem(position)
         return view
     }
 
@@ -65,6 +75,6 @@ class StationListAdapter(context: Context) : ListAdapter {
     }
 
     override fun isEmpty(): Boolean {
-        return stations.isEmpty()
+        return stationNames.isEmpty()
     }
 }

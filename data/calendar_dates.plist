@@ -5,6 +5,30 @@
 	<key>CT-17JUL-Caltrain-Saturday-03</key>
 	<array>
 		<array>
+			<integer>20170716</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170717</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170718</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170719</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170720</integer>
+			<integer>2</integer>
+		</array>
+		<array>
+			<integer>20170721</integer>
+			<integer>2</integer>
+		</array>
+		<array>
 			<integer>20170723</integer>
 			<integer>2</integer>
 		</array>
