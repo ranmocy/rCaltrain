@@ -1,43 +1,32 @@
 package me.ranmocy.rcaltrain.models;
 
-import android.support.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-import me.ranmocy.rcaltrain.ui.ResultsListAdapter;
+import kotlin.jvm.internal.Intrinsics;
 
-/**
- * Result object of scheduling.
- */
-public class ScheduleResult implements Comparable<ScheduleResult> {
-    private final DayTime departureTime;
-    private final DayTime arrivalTime;
-    private final long interval;
+public final class ScheduleResult implements Comparable<ScheduleResult> {
+
+    public final DayTime departureTime;
+    public final DayTime arrivalTime;
 
     public ScheduleResult(DayTime departureTime, DayTime arrivalTime) {
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
-        this.interval = departureTime.toInMinutes(arrivalTime);
     }
 
-    public DayTime getDepartureTime() {
-        return departureTime;
+    public final String getIntervalTimeString() {
+        return String.format(Locale.getDefault(), "%d min", departureTime.toInMinutes(arrivalTime));
     }
 
-    public String getDepartureTimeString() {
-        return departureTime.toString();
-    }
-
-    public String getArrivalTimeString() {
-        return arrivalTime.toString();
-    }
-
-    public String getIntervalTimeString() {
-        return String.format(Locale.getDefault(), "%d min", interval);
+    public int compareTo(@NotNull ScheduleResult other) {
+        Intrinsics.checkParameterIsNotNull(other, "other");
+        return this.departureTime.compareTo(other.departureTime);
     }
 
     @Override
-    public int compareTo(@NonNull ScheduleResult another) {
-        return this.departureTime.compareTo(another.departureTime);
+    public String toString() {
+        return String.format("%s => %s", departureTime, arrivalTime);
     }
 }

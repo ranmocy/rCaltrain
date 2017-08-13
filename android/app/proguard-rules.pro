@@ -15,3 +15,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Referenced by Room, but will eventually go away.
+# https://issuetracker.google.com/issues/63945591
+# https://issuetracker.google.com/issues/63833848
+-dontwarn android.arch.persistence.room.paging.**

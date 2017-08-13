@@ -5,13 +5,13 @@
 <map>
 <key>weekday</key>
 <value>
-false
+true
 </value><key>saturday</key>
 <value>
 true
 </value><key>sunday</key>
 <value>
-false
+true
 </value><key>start_date</key>
 <value>
 20170715

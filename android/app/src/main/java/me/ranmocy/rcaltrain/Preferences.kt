@@ -2,8 +2,7 @@ package me.ranmocy.rcaltrain
 
 import android.content.Context
 import android.content.SharedPreferences
-
-import me.ranmocy.rcaltrain.models.ScheduleType
+import me.ranmocy.rcaltrain.database.ScheduleDao
 
 /** Preferences manages [SharedPreferences]. */
 class Preferences(context: Context) {
@@ -24,14 +23,7 @@ class Preferences(context: Context) {
         get() = preferences.getString(LAST_DESTINATION_STATION_NAME, "")
         set(stationName) = preferences.edit().putString(LAST_DESTINATION_STATION_NAME, stationName).apply()
 
-    var lastScheduleType: ScheduleType
-        get() {
-            var type = preferences.getInt(LAST_SCHEDULE_TYPE, ScheduleType.NOW.ordinal)
-            val types = ScheduleType.values()
-            if (type < 0 || type >= types.size) {
-                type = 0
-            }
-            return types[type]
-        }
-        set(type) = preferences.edit().putInt(LAST_SCHEDULE_TYPE, type.ordinal).apply()
+    var lastScheduleType: Int
+        @ScheduleDao.ServiceType get() = preferences.getInt(LAST_SCHEDULE_TYPE, ScheduleDao.ServiceType.SERVICE_NOW)
+        set(type) = preferences.edit().putInt(LAST_SCHEDULE_TYPE, type).apply()
 }
