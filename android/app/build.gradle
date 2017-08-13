@@ -50,9 +50,10 @@ dependencies {
     compile 'com.google.firebase:firebase-analytics:9.0.0'
 
     testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.3.2"
     testCompile 'com.google.code.gson:gson:2.8.0'
     testCompile "com.google.truth:truth:0.34"
+    testCompile "org.mockito:mockito-core:2.8.47"
+    testCompile "org.robolectric:robolectric:3.3.2"
 
     androidTestCompile 'com.android.support:support-annotations:26.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
