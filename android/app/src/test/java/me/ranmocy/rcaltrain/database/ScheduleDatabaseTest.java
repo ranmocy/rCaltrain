@@ -2,9 +2,6 @@ package me.ranmocy.rcaltrain.database;
 
 import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 import android.util.Pair;
 
@@ -14,6 +11,9 @@ import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -23,10 +23,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import me.ranmocy.rcaltrain.BuildConfig;
 import me.ranmocy.rcaltrain.DataLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
@@ -34,8 +34,8 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(AndroidJUnit4.class)
-@SmallTest
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 25)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
@@ -48,8 +48,11 @@ public class ScheduleDatabaseTest {
     public void setup() {
         today = Calendar.getInstance();
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
-        Context context = InstrumentationRegistry.getTargetContext();
-        db = Room.inMemoryDatabaseBuilder(context, ScheduleDatabase.class).build();
+        Context context = RuntimeEnvironment.application;
+        db = Room
+                .inMemoryDatabaseBuilder(context, ScheduleDatabase.class)
+                .allowMainThreadQueries()
+                .build();
 
         try {
             Field field = ScheduleDatabase.class.getDeclaredField("instance");
@@ -272,7 +275,7 @@ public class ScheduleDatabaseTest {
                     StopTime fromStop = fromStops.get(k);
                     StopTime toStop = toStops.get(k);
                     assertThat(fromStop.service_type).isEqualTo(toStop.service_type);
-                    if (Objects.equals("SatOnly", fromStop.service_type) && !isSaturday) {
+                    if ("SatOnly".equals(fromStop.service_type) && !isSaturday) {
                         continue;
                     }
                     if (fromStop.time != null && toStop.time != null) {
@@ -300,8 +303,7 @@ public class ScheduleDatabaseTest {
                                                                            today,
                                                                            now));
 
-                if (Objects.equals(fromName, "22nd St") && Objects.equals(toName,
-                                                                          "San " + "Francisco")) {
+                if ("22nd St".equals(fromName) && "San Francisco".equals(toName)) {
                     assertThat(true).isTrue();
                 }
                 assertThat(resultTimes)
