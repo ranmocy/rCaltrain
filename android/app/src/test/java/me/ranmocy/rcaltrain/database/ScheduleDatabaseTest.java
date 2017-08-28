@@ -28,7 +28,7 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import me.ranmocy.rcaltrain.BuildConfig;
-import me.ranmocy.rcaltrain.DataLoader;
+import me.ranmocy.rcaltrain.ScheduleLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
@@ -58,7 +58,7 @@ public class ScheduleDatabaseTest {
         ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
 
         // Even app would load it, we load again here to wait for result
-        DataLoader.Companion.loadDataAlways(context);
+        ScheduleLoader.load(context);
     }
 
     @After
