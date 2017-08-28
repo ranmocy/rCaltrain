@@ -57,6 +57,9 @@ public class ScheduleDatabaseTest {
 
         ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
 
+        ScheduleDatabase dd = ScheduleDatabase.get(context);
+        assertThat((Boolean) ReflectionHelpers.getField(dd, "mAllowMainThreadQueries")).isTrue();
+
         // Even app would load it, we load again here to wait for result
         ScheduleLoader.load(context);
     }
