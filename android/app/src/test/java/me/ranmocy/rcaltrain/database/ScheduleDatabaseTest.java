@@ -8,15 +8,16 @@ import android.util.Pair;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -54,16 +55,16 @@ public class ScheduleDatabaseTest {
                 .allowMainThreadQueries()
                 .build();
 
-        try {
-            Field field = ScheduleDatabase.class.getDeclaredField("instance");
-            field.setAccessible(true);
-            field.set(ScheduleDatabase.class, db);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
 
         // Even app would load it, we load again here to wait for result
         DataLoader.Companion.loadDataAlways(context);
+    }
+
+    @After
+    public void cleanup() {
+        db.close();
+        ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", null);
     }
 
     @Test

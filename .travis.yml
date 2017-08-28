@@ -1,25 +1,164 @@
-language: ruby
-sudo: false
-dist: trusty
-cache:
-  directories:
-    - travis_phantomjs
 git:
   depth: 1
 branches:
-  only:
-    - master
+  except:
+    - gh-pages
+sudo: false
+dist: trusty
+
+language: android
+jdk: oraclejdk8
+before_cache:
+  -rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  -rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.travis_phantomjs/
+env:
+  global:
+    # android
+    - ANDROID_API_LEVEL=26
+    # android emulator tests
+    - EMULATOR_API_LEVEL=25 # 26 not yet available
+    - ANDROID_BUILD_TOOLS_VERSION=26.0.0
+    - ANDROID_ABI=armeabi-v7a
+    - ANDROID_TAG=google_apis
+    - MALLOC_ARENA_MAX=2 # https://github.com/travis-ci/travis-ci/issues/3695
+    - ADB_INSTALL_TIMEOUT=5 # minutes
+    # ruby tests
+    - RUBY_VERSION=2.4
+    - PHANTOMJS_VERSION=2.1.1
+  matrix:
+    - TEST_CASE=ruby
+    - TEST_CASE=robolectric
+    - TEST_CASE=emulator EMULATOR_API_LEVEL=25
+    - TEST_CASE=emulator EMULATOR_API_LEVEL=15
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=25
+    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=15
+android:
+  components:
+    - tools # Note that the tools section appears twice on purpose as it’s required to get the newest Android SDK tools.
+    - platform-tools
+    - tools
+    - build-tools-$ANDROID_BUILD_TOOLS_VERSION
+    - android-$ANDROID_API_LEVEL
+    # For Google APIs
+    - addon-google_apis-google-$ANDROID_API_LEVEL
+    - addon-google_apis-google-$EMULATOR_API_LEVEL
+    # Google Play Services
+    - extra-google-google_play_services
+    # Support library
+    - extra-android-support
+    # Latest artifacts in local repository
+    - extra-google-m2repository
+    - extra-android-m2repository
+    # Emulator sys img
+    - sys-img-$ANDROID_ABI-$ANDROID_TAG-$EMULATOR_API_LEVEL
+  licenses:
+    - android-sdk-preview-license-.+
+    - android-sdk-license-.+
+    - google-gdk-license-.+
 before_install:
-  # Upgrade PhantomJS.
   - |
-      export PHANTOMJS_VERSION=2.1.1
-      export PATH=$PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH
-      if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then
-        rm -rf $PWD/travis_phantomjs
-        mkdir -p $PWD/travis_phantomjs
-        wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2
-        tar -xvf phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $PWD/travis_phantomjs
+      if [ $TEST_CASE == "ruby" ]; then
+        echo "Checking PhantomJS"
+        export PATH=$HOME/.travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH
+        if [ "$(phantomjs --version)" != "$PHANTOMJS_VERSION" ]; then
+          echo "Upgrade PhantomJS"
+          rm -rf $HOME/.travis_phantomjs
+          mkdir -p $HOME/.travis_phantomjs
+          wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2
+          tar -xvf phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $HOME/.travis_phantomjs
+        fi
+        phantomjs -v
+
+      elif [ $TEST_CASE == "robolectric" ]; then
+        cd android/
+        cp app/google-services.json.sample app/google-services.json
+
+        echo "Accept licences"
+        mkdir "$ANDROID_HOME/licenses"
+        echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+        chmod +x gradlew
+        ./gradlew dependencies
+
+      elif [ $TEST_CASE == "emulator" ]; then
+        cd android/
+        cp app/google-services.json.sample app/google-services.json
+
+        # export ANDROID_SDK_ROOT=$ANDROID_HOME
+        # rm -rf $ANDROID_HOME/tools && \
+        # wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip && \
+        # unzip sdk-tools-linux-3859397.zip -d $ANDROID_HOME >/dev/null
+
+        echo "Accept licences"
+        mkdir "$ANDROID_HOME/licenses"
+        echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+        chmod +x gradlew
+        ./gradlew dependencies
       fi
-      phantomjs -v
-rvm:
-  - 2.3
+before_script:
+  - |
+      if [ $TEST_CASE == "ruby" ]; then
+        rvm install $RUBY_VERSION
+        bundle install
+
+      elif [ $TEST_CASE == "robolectric" ]; then
+        echo "no-op"
+
+      elif [ $TEST_CASE == "emulator" ]; then
+        ls -l $ANDROID_HOME/tools
+        ls -l $ANDROID_HOME/tools/bin
+        ls -l $ANDROID_HOME/platforms
+        ls -l $ANDROID_HOME/system-images
+        /usr/local/android-sdk/tools/bin/avdmanager
+        /usr/local/android-sdk/tools/bin/sdkmanager
+        android create avd -h
+        emulator -help
+        cat $(which android-wait-for-emulator)
+
+        echo "Create AVD"
+        echo no | android create avd --force -n test -t "android-"$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
+        android list target
+        android list avd
+        # echo no | $ANDROID_HOME/tools/bin/avdmanager --verbose create avd --force -n test \
+        # --tag $ANDROID_TAG  --abi $ANDROID_ABI --package "system-images;android-$EMULATOR_API_LEVEL;$ANDROID_TAG;$ANDROID_ABI"
+        # $ANDROID_HOME/tools/bin/avdmanager list target
+        # $ANDROID_HOME/tools/bin/avdmanager list avd
+
+        # Disable audio in qemu entirely
+        # https://stackoverflow.com/questions/40272884/running-android-emulator-with-noaudio-option-returns-qemu-system-i386-exe-au
+        export QEMU_AUDIO_DRV=none
+
+        echo "Start AVD"
+        emulator -avd test -no-skin -no-window &
+
+        echo "Wait AVD"
+        for i in {1..60}; do
+          adb devices
+          sleep 1
+        done
+        adb wait-for-device
+        android-wait-for-emulator
+
+        echo "Press menu key"
+        adb shell input keyevent 82 & # KEYCODE_MENU
+      fi
+script:
+  - |
+      if [ $TEST_CASE == "ruby" ]; then
+        bundle exec rake || exit 1
+
+      elif [ $TEST_CASE == "robolectric" ]; then
+        ./gradlew clean test || ./gradlew test --info || exit 1
+
+      elif [ $TEST_CASE == "emulator" ]; then
+        ./gradlew clean build connectedCheck -PdisablePreDex --stacktrace || exit 1
+      fi
