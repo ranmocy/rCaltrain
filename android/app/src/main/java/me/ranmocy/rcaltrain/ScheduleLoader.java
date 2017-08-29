@@ -10,6 +10,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -27,24 +29,40 @@ public final class ScheduleLoader {
 
     private static final String TAG = "DataLoader";
 
-    public static void load(Context context) {
-        Log.i(TAG, "Loading data");
+    public static void loadFromRemote(Context context) {
         try {
-            List<Service> services = loadCalendar(context);
-            List<ServiceDate> serviceDates = loadCalendarDates(context);
-            List<Station> stations = loadStations(context);
-            Routes routes = loadRoutes(context);
+            List<Service> services = getCalendar(getRemoteFile("calendar.json"));
+            List<ServiceDate> serviceDates = getCalendarDates(getRemoteFile("calendar_dates.json"));
+            List<Station> stations = getStations(getRemoteFile("stops.json"));
+            Routes routes = getRoutes(getRemoteFile("routes.json"));
 
-            Log.i(TAG, "Finish reading");
             ScheduleDatabase
                     .get(context)
                     .updateData(stations, services, serviceDates, routes.trips, routes.stops);
+            Log.i(TAG, "Data loaded.");
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Failed load from remote", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void load(Context context) {
+        try {
+            List<Service> services = getCalendar(getFile(context, R.raw.calendar));
+            List<ServiceDate> serviceDates = getCalendarDates(getFile(context,
+                                                                      R.raw.calendar_dates));
+            List<Station> stations = getStations(getFile(context, R.raw.stops));
+            Routes routes = getRoutes(getFile(context, R.raw.routes));
+
+            ScheduleDatabase
+                    .get(context)
+                    .updateData(stations, services, serviceDates, routes.trips, routes.stops);
+            Log.i(TAG, "Data loaded.");
         } catch (IOException | JSONException e) {
             Log.e(TAG, "Failed loading", e);
             // TODO: show dialog
             throw new RuntimeException(e);
         }
-        Log.i(TAG, "Data loaded.");
     }
 
     /**
@@ -53,10 +71,10 @@ public final class ScheduleLoader {
      * CT-16APR-Caltrain-Weekday-01 => {weekday: false, saturday: true, sunday: false,
      * start_date: 20160404, end_date: 20190331}
      */
-    private static List<Service> loadCalendar(Context context) throws IOException, JSONException {
+    private static List<Service> getCalendar(String calendar) throws JSONException {
         List<Service> services = new ArrayList<>();
 
-        JSONObject json = getJSON(context, R.raw.calendar);
+        JSONObject json = new JSONObject(calendar);
         for (Iterator<String> it = json.keys(); it.hasNext(); ) {
             String serviceId = it.next();
             JSONObject s = json.getJSONObject(serviceId);
@@ -77,11 +95,10 @@ public final class ScheduleLoader {
      * service_id => [[date, exception_type]]
      * CT-16APR-Caltrain-Weekday-01 => [[20160530,2]]
      */
-    private static List<ServiceDate> loadCalendarDates(Context context) throws IOException,
-            JSONException {
+    private static List<ServiceDate> getCalendarDates(String jsonStr) throws JSONException {
         List<ServiceDate> serviceDates = new ArrayList<>();
 
-        JSONObject json = getJSON(context, R.raw.calendar_dates);
+        JSONObject json = new JSONObject(jsonStr);
         for (Iterator<String> it = json.keys(); it.hasNext(); ) {
             String serviceId = it.next();
             JSONArray dateJSON = json.getJSONArray(serviceId);
@@ -102,10 +119,10 @@ public final class ScheduleLoader {
      * stop_name => [stop_id1, stop_id2]
      * "San Francisco" => [70021, 70022]
      */
-    private static List<Station> loadStations(Context context) throws IOException, JSONException {
+    private static List<Station> getStations(String jsonStr) throws JSONException {
         List<Station> stations = new ArrayList<>();
 
-        JSONObject json = getJSON(context, R.raw.stops);
+        JSONObject json = new JSONObject(jsonStr);
         for (Iterator<String> it = json.keys(); it.hasNext(); ) {
             String name = it.next();
             JSONArray ids = json.getJSONArray(name);
@@ -136,11 +153,11 @@ public final class ScheduleLoader {
      * ]] } } }
      * { "Bullet" => { "CT-14OCT-XXX" => { "650770-CT-14OCT-XXX" => [[70012, 29700], ...] } } }
      */
-    private static Routes loadRoutes(Context context) throws IOException, JSONException {
+    private static Routes getRoutes(String jsonStr) throws JSONException {
         List<Trip> tripList = new ArrayList<>();
         List<Stop> stopList = new ArrayList<>();
 
-        JSONObject routes = getJSON(context, R.raw.routes);
+        JSONObject routes = new JSONObject(jsonStr);
         for (Iterator<String> routeIds = routes.keys(); routeIds.hasNext(); ) {
             String routeId = routeIds.next();
             JSONObject services = routes.getJSONObject(routeId);
@@ -179,13 +196,21 @@ public final class ScheduleLoader {
         return calendar;
     }
 
-    private static JSONObject getJSON(Context context, @RawRes int resId) throws IOException,
-            JSONException {
-        return new JSONObject(getFileContent(context, resId));
+    private static String getFile(Context context, @RawRes int resId) throws IOException {
+        InputStream is = context.getResources().openRawResource(resId);
+        int size = is.available();
+        byte[] buffer = new byte[size];
+        is.read(buffer);
+        is.close();
+        return new String(buffer, "UTF-8");
     }
 
-    private static String getFileContent(Context context, @RawRes int resId) throws IOException {
-        InputStream is = context.getResources().openRawResource(resId);
+    private static String getRemoteFile(String fileName) throws IOException {
+        URL url = new URL("https://rcaltrain.com/data/" + fileName);
+        URLConnection connection = url.openConnection();
+        connection.connect();
+        InputStream is = connection.getInputStream();
+
         int size = is.available();
         byte[] buffer = new byte[size];
         is.read(buffer);
