@@ -54,20 +54,23 @@ public class ScheduleDatabaseTest {
                 .inMemoryDatabaseBuilder(context, ScheduleDatabase.class)
                 .allowMainThreadQueries()
                 .build();
-
-        ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
+        synchronized (ScheduleDatabase.class) {
+            ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
+        }
 
         ScheduleDatabase dd = ScheduleDatabase.get(context);
         assertThat((Boolean) ReflectionHelpers.getField(dd, "mAllowMainThreadQueries")).isTrue();
 
         // Even app would load it, we load again here to wait for result
-        ScheduleLoader.load(context);
+        ScheduleLoader.load(context, db);
     }
 
     @After
     public void cleanup() {
         db.close();
-        ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", null);
+        synchronized (ScheduleDatabase.class) {
+            ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", null);
+        }
     }
 
     @Test

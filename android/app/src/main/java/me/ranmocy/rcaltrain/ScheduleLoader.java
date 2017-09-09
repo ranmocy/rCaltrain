@@ -46,7 +46,7 @@ public final class ScheduleLoader {
         }
     }
 
-    public static void load(Context context) {
+    public static void load(Context context, ScheduleDatabase db) {
         try {
             List<Service> services = getCalendar(getFile(context, R.raw.calendar));
             List<ServiceDate> serviceDates = getCalendarDates(getFile(context,
@@ -54,9 +54,7 @@ public final class ScheduleLoader {
             List<Station> stations = getStations(getFile(context, R.raw.stops));
             Routes routes = getRoutes(getFile(context, R.raw.routes));
 
-            ScheduleDatabase
-                    .get(context)
-                    .updateData(stations, services, serviceDates, routes.trips, routes.stops);
+            db.updateData(stations, services, serviceDates, routes.trips, routes.stops);
             Log.i(TAG, "Data loaded.");
         } catch (IOException | JSONException e) {
             Log.e(TAG, "Failed loading", e);
