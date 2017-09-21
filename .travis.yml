@@ -146,7 +146,7 @@ before_script:
           sleep 1
         done
         adb wait-for-device
-        android-wait-for-emulator
+        # android-wait-for-emulator
 
         echo "Press menu key"
         adb shell input keyevent 82 & # KEYCODE_MENU
