@@ -160,5 +160,5 @@ script:
         ./gradlew clean test || ./gradlew test --info || exit 1
 
       elif [ $TEST_CASE == "emulator" ]; then
-        ./gradlew clean build connectedCheck -PdisablePreDex --stacktrace || exit 1
+        ./gradlew clean build connectedCheck -PdisablePreDex --stacktrace || ./gradlew connectedCheck --info -PdisablePreDex --stacktrace || exit 1
       fi
