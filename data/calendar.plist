@@ -2,40 +2,40 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CT-17JUL-Caltrain-Saturday-03</key>
+	<key>CT-17OCT-Caltrain-Mixed-03</key>
 	<dict>
 		<key>end_date</key>
-		<integer>20190720</integer>
+		<integer>20191005</integer>
 		<key>saturday</key>
 		<true/>
 		<key>start_date</key>
-		<integer>20170715</integer>
+		<integer>20171007</integer>
 		<key>sunday</key>
 		<true/>
 		<key>weekday</key>
 		<true/>
 	</dict>
-	<key>CT-17JUL-Caltrain-Sunday-01</key>
+	<key>CT-17OCT-Caltrain-Sunday-01</key>
 	<dict>
 		<key>end_date</key>
-		<integer>20190714</integer>
+		<integer>20190929</integer>
 		<key>saturday</key>
 		<false/>
 		<key>start_date</key>
-		<integer>20170716</integer>
+		<integer>20171001</integer>
 		<key>sunday</key>
 		<true/>
 		<key>weekday</key>
 		<false/>
 	</dict>
-	<key>CT-17JUL-Combo-Weekday-01</key>
+	<key>CT-17OCT-Combo-Weekday-01</key>
 	<dict>
 		<key>end_date</key>
-		<integer>20190719</integer>
+		<integer>20191004</integer>
 		<key>saturday</key>
 		<false/>
 		<key>start_date</key>
-		<integer>20170717</integer>
+		<integer>20171002</integer>
 		<key>sunday</key>
 		<false/>
 		<key>weekday</key>
