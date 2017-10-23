@@ -26,7 +26,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 public abstract class ScheduleDatabase extends RoomDatabase {
 
     private static final String TAG = "ScheduleDatabase";
-    private static ScheduleDatabase instance = null;
+    private static volatile ScheduleDatabase instance = null;
 
     public static ScheduleDatabase get(Context context) {
         if (instance == null) {
