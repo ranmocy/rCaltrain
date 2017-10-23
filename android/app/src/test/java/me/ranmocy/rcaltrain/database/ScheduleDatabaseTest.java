@@ -50,11 +50,11 @@ public class ScheduleDatabaseTest {
         today = Calendar.getInstance();
         now = new DayTime(60 * 60 * 10 - 1); // 1 second to 10:00
         Context context = RuntimeEnvironment.application;
-        db = Room
-                .inMemoryDatabaseBuilder(context, ScheduleDatabase.class)
-                .allowMainThreadQueries()
-                .build();
         synchronized (ScheduleDatabase.class) {
+            db = Room
+                    .inMemoryDatabaseBuilder(context, ScheduleDatabase.class)
+                    .allowMainThreadQueries()
+                    .build();
             ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", db);
         }
 
@@ -67,8 +67,8 @@ public class ScheduleDatabaseTest {
 
     @After
     public void cleanup() {
-        db.close();
         synchronized (ScheduleDatabase.class) {
+            db.close();
             ReflectionHelpers.setStaticField(ScheduleDatabase.class, "instance", null);
         }
     }
@@ -124,11 +124,15 @@ public class ScheduleDatabaseTest {
     @Test
     public void test_now() {
         today.clear();
-        today.set(2017, 7/*0-based*/, 1);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20170801);
+        today.set(2017, Calendar.OCTOBER, 3);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20171003);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.TUESDAY);
 
         assertThat(now.toString()).isEqualTo("09:59");
+
+        List<String> stationNames = db.getStationNamesTesting();
+        assertThat(stationNames).contains("San Francisco");
+        assertThat(stationNames).contains("22nd St");
 
         List<String> results = mapResults(db.getResultsTesting("San Francisco",
                                                                "22nd St",
@@ -162,17 +166,17 @@ public class ScheduleDatabaseTest {
         switch (type) {
             case ServiceType.SERVICE_WEEKDAY:
                 today.clear();
-                today.set(2017, 6/*0-based*/, 19);
+                today.set(2017, Calendar.OCTOBER, 4);
                 day = Calendar.WEDNESDAY;
                 break;
             case ServiceType.SERVICE_SATURDAY:
                 today.clear();
-                today.set(2017, 6/*0-based*/, 22);
+                today.set(2017, Calendar.OCTOBER, 7);
                 day = Calendar.SATURDAY;
                 break;
             case ServiceType.SERVICE_SUNDAY:
                 today.clear();
-                today.set(2017, 6/*0-based*/, 23);
+                today.set(2017, Calendar.OCTOBER, 8);
                 day = Calendar.SUNDAY;
                 break;
             case ServiceType.SERVICE_NOW:
@@ -310,9 +314,6 @@ public class ScheduleDatabaseTest {
                                                                            today,
                                                                            now));
 
-                if ("22nd St".equals(fromName) && "San Francisco".equals(toName)) {
-                    assertThat(true).isTrue();
-                }
                 assertThat(resultTimes)
                         .named(String.format("(%s -> %s)", fromName, toName))
                         .containsExactlyElementsIn(expectTimes)
