@@ -29,6 +29,10 @@ Regarding your selected departure and destination stations:
 3. **Saturday** shows all services available at Saturday of current week.
 4. **Sunday** shows all services available at Sunday of current week.
 
+# Privacy
+
+This app doesn't require any special permission, and it doesn't access to any user's data.
+
 # Dev Dependencies
 
 * [UglifyCSS](https://github.com/fmarcia/UglifyCSS): `npm install uglifycss -g`
