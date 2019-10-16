@@ -55,7 +55,7 @@ task :download_test_data do
         'Baby Bullet'
       when 'rgb(247,232,157)' # yellow
         'Limited'
-      when 'rgb(116,187,146)' # green for "Timed transfers for local service" only happends as limited
+      when 'rgb(189,220,155)' # green for "Timed transfers for local service" only happends as limited
         node_column_index = node.parent.children.index(node)
         first_node_in_same_column = node.parent.parent.at_xpath('tr').children[node_column_index]
         if node == first_node_in_same_column
@@ -91,6 +91,19 @@ task :download_test_data do
       case str
       when ''
         nil
+      when /\A(\d?\d):(\d\d)([ap])\Z/
+        hours = $1.to_i
+        minutes = $2.to_i
+        is_pm = ($3 == 'p')
+        if !is_pm or ((hours == 12 or hours < 3) and getServiceType(style, node) == 'SatOnly')
+          # AM. for weekend SatOnly data, some are actually am
+          hours += 12 if hours == 12 # 12am to 24
+          hours += 24 if hours < 3   # 1am to 25, assume no train start before 3
+        else
+          # PM
+          hours += 12 if hours != 12 # 1pm to 13
+        end
+        [hours, minutes].map { |i| i.to_s.rjust(2, '0') }.join(':')
       when /\A\d?\d:\d\d\Z/
         t = str.split(':').map(&:to_i)
         if !isPm(style, node) or ((t[0] == 12 or t[0] < 3) and getServiceType(style, node) == 'SatOnly')
@@ -173,6 +186,7 @@ task spec: :download_test_data do
   Capybara.reset!
   Capybara.app = Rack::File.new File.dirname __FILE__
   Capybara.run_server = true
+  Capybara.server = :webrick
 
   Capybara.default_driver = :poltergeist
   Capybara.register_driver :poltergeist do |app|

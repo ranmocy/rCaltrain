@@ -1,4 +1,4 @@
 service_id,service_description
-CT-17OCT-Caltrain-Sunday-01,Sunday
-CT-17OCT-Combo-Weekday-01,Weekday
-CT-17OCT-Caltrain-Mixed-03,Saturday
+c_17997_b_22470_d_31,Year Round Weekday Starting 10/7/19 (Weekday)
+c_16884_b_19708_d_96,Year Round Weekend (Weekend)
+c_16883_b_19709_d_32,Year Round Saturday (Saturday only)

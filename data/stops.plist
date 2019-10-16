@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>22nd St</key>
+	<key>22nd Street</key>
 	<array>
 		<integer>70021</integer>
 		<integer>70022</integer>
@@ -87,7 +87,7 @@
 		<integer>70301</integer>
 		<integer>70302</integer>
 	</array>
-	<key>Mt View</key>
+	<key>Mountain View</key>
 	<array>
 		<integer>70211</integer>
 		<integer>70212</integer>
@@ -143,10 +143,15 @@
 		<integer>70241</integer>
 		<integer>70242</integer>
 	</array>
-	<key>So. San Francisco</key>
+	<key>South San Francisco</key>
 	<array>
 		<integer>70041</integer>
 		<integer>70042</integer>
+	</array>
+	<key>Stanford</key>
+	<array>
+		<integer>2537740</integer>
+		<integer>2537744</integer>
 	</array>
 	<key>Sunnyvale</key>
 	<array>
