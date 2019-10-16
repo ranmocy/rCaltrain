@@ -1,5 +1,0 @@
-route_id,realtime_enabled,realtime_routename,realtime_routecode
-Bu-130,1,Baby Bullet,Baby Bullet
-Li-130,1,Limited,Limited
-Lo-130,1,Local,Local
-TaSj-130,0,TaSJ-Shuttle,TaSJ-Shuttle
