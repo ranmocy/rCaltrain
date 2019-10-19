@@ -32,6 +32,7 @@ desc "Download test data"
 task :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
+  require 'webdrivers/chromedriver'
   require 'json'
 
   Capybara.reset!
