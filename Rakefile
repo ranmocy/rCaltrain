@@ -14,80 +14,92 @@ class File
   end
 end
 
+def ASSERT(condition, msg)
+  unless condition
+    require 'pry'; binding.pry
+    throw msg || 'Failed assertion'
+  end
+end
+
+def FAIL(msg)
+  require 'pry'; binding.pry
+  throw msg || 'Failed'
+end
+
 task default: :spec
 
 desc "Download test data"
 task :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
-  require 'capybara/poltergeist'
   require 'json'
-  require 'nokogiri'
 
   Capybara.reset!
-  Capybara.default_driver = :poltergeist
-  Capybara.run_server = false
-
-  Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, js_errors: false, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
+  Capybara.configure do |config|
+    config.default_driver = :selenium_chrome_headless
+    config.run_server = false
+    config.default_max_wait_time = 0
   end
 
   class WebScraper
     include Capybara::DSL
 
-    def getStyle(node)
-      # serialization is expensive, so we only return what we need
-      page.evaluate_script("\
-(function() {
-  var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
-  return {
-    backgroundColor: temp_style.backgroundColor,
-    color: temp_style.color,
-    fontWeight: temp_style.fontWeight,
-  }
-})()")
+    def getStyle(node, style)
+      node.style(style)[style.to_s]
     end
 
-    def getServiceType(style, node)
-      color = style['backgroundColor'].gsub(/[[:space:]]/, '')
-      case color
-      when 'rgb(240,178,161)' # light red
-        'Baby Bullet'
-      when 'rgb(247,232,157)' # yellow
-        'Limited'
-      when 'rgb(189,220,155)' # green for "Timed transfers for local service" only happends as limited
-        node_column_index = node.parent.children.index(node)
-        first_node_in_same_column = node.parent.parent.at_xpath('tr').children[node_column_index]
-        if node == first_node_in_same_column
-          require 'pry'; binding.pry
-          throw "Transfer can't be in the start station!"
-        end
-        getServiceType(getStyle(first_node_in_same_column), first_node_in_same_column)
-      when 'rgba(0,0,0,0)', 'rgb(255,255,255)' # white
-        'Local'
-      when 'rgb(0,0,0)' # black
-        'SatOnly'
+    # A map from color to [class_name, display_name]
+    # If class_name is nil, don't check it
+    # If display_name is nil, service type is determined by the first cell in the same column
+    SERVICE_TYPE_COLOR_MAPPING = {
+      'rgba(240,178,161,1)' => ['bullet', 'Baby Bullet'], # light red
+      'rgba(247,232,157,1)' => ['limited', 'Limited'], # yellow
+      'rgba(189,220,155,1)' => [nil, nil], # green for "Timed transfers for local service"
+      'rgba(0,0,0,0)' => [nil, 'Local'], # transparent
+      'rgba(255,255,255,1)' => [nil, 'Local'], # white
+      'rgba(0,0,0,1)' => [nil, 'SatOnly'] # black
+    }
+    def getServiceType(node)
+      class_list = node[:class].split(" ")
+      color = getStyle(node, :backgroundColor).gsub(/[[:space:]]/, '')
+
+      ASSERT(SERVICE_TYPE_COLOR_MAPPING.include?(color), 'Unexpected cell color:' + color)
+      class_name, display_name = SERVICE_TYPE_COLOR_MAPPING[color]
+      ASSERT((!class_name or class_list.include?(class_name)), "Unexpected class name: Expect #{class_name} in #{class_list}.")
+
+      if display_name == nil
+        # first_cell_xpath = node.path.reverse.sub(/\]\d+\[RT/, 'RT').reverse
+
+        parts = node.path.rpartition(/TR\[\d+\]/i)
+        ASSERT(parts[1] != 'TR[1]', "Transfer can't be in the start station!")
+        parts[1] = 'TR[1]'
+        first_node_in_same_column = node.first(:xpath, parts.join(''))
+        ASSERT(first_node_in_same_column, 'Can not find first cell in the column')
+
+        color = getStyle(first_node_in_same_column, :backgroundColor).gsub(/[[:space:]]/, '')
+        ASSERT(SERVICE_TYPE_COLOR_MAPPING.include?(color), 'Unexpected cell color:' + color)
+        class_name, display_name = SERVICE_TYPE_COLOR_MAPPING[color]
+        ASSERT(display_name, 'Can not find color')
+
+        display_name
       else
-        require 'pry'; binding.pry
-        throw 'Unknown backgroundColor:' + color
+        display_name
       end
     end
 
-    def isPm(style, node)
-      case style['fontWeight']
-      when 'normal', nil
+    def isPmStyle(node)
+      weight = getStyle(node, :fontWeight)
+      case weight
+      when 'normal', '400', nil
         false
       when 'bold'
         true
       else
-        require 'pry'; binding.pry
-        throw 'Unknown font style:' + style
+        FAIL('Unknown font weight:' + weight)
       end
     end
 
-    def getTime(style, node)
-      str = node.text
-      [[160].pack('U*'), [8211].pack('U*'), [8212].pack('U*'), /[\+\*\-]/].each { |org| str.gsub!(org, '') }
+    def getTime(str, service_type, is_pm_style)
       case str
       when ''
         nil
@@ -95,7 +107,7 @@ task :download_test_data do
         hours = $1.to_i
         minutes = $2.to_i
         is_pm = ($3 == 'p')
-        if !is_pm or ((hours == 12 or hours < 3) and getServiceType(style, node) == 'SatOnly')
+        if !is_pm or ((hours == 12 or hours < 3) and service_type == 'SatOnly')
           # AM. for weekend SatOnly data, some are actually am
           hours += 12 if hours == 12 # 12am to 24
           hours += 24 if hours < 3   # 1am to 25, assume no train start before 3
@@ -106,7 +118,7 @@ task :download_test_data do
         [hours, minutes].map { |i| i.to_s.rjust(2, '0') }.join(':')
       when /\A\d?\d:\d\d\Z/
         t = str.split(':').map(&:to_i)
-        if !isPm(style, node) or ((t[0] == 12 or t[0] < 3) and getServiceType(style, node) == 'SatOnly')
+        if !is_pm_style or ((t[0] == 12 or t[0] < 3) and service_type == 'SatOnly')
           # AM. for weekend SatOnly data, some are actually am
           t[0] += 12 if t[0] == 12 # 12am to 24
           t[0] += 24 if t[0] < 3   # 1am to 25, assume no train start before 3
@@ -116,8 +128,7 @@ task :download_test_data do
         end
         t.map { |i| i.to_s.rjust(2, '0') }.join(':')
       else
-        require 'pry'; binding.pry
-        throw "Unknown time:" + str
+        FAIL("Unknown time:" + str)
       end
     end
 
@@ -129,44 +140,65 @@ task :download_test_data do
         .gsub('SJ Diridon', 'San Jose Diridon')
     end
 
+    def getSchedule(direction)
+      all(:xpath, "//table[@class=\"#{direction}\"]/tbody/tr").map { |tr|
+        name_cell = tr.find(:xpath, 'th[2]')
+        name_nodes = name_cell.all('a')
+        case name_nodes.size
+        when 0
+          ASSERT(name_cell.text == 'Shuttle Bus', 'Expect text to be Shuttle Bus')
+          next nil # skip shuttle bus
+        when 1
+          # continue
+        else
+          FAIL("Unexpected cell")
+        end
+
+        {
+          name: getName(name_nodes[0]),
+          stop_times:
+            tr.all('td')
+              .map { |td|
+                text = td.text
+                  .gsub([160].pack('U*'), '')
+                  .gsub([8211].pack('U*'), '')
+                  .gsub([8212].pack('U*'), '')
+                  .gsub(/[\+\*\-]/, '')
+                  .strip
+                next nil if text.empty?
+
+                service_type = getServiceType(td)
+                is_pm_style = isPmStyle(td)
+
+                {
+                  service_type: service_type,
+                  time: getTime(text, service_type, is_pm_style),
+                }
+              }
+              .filter { |data| data },
+        }
+      }.keep_if {|item| item != nil }
+    end
+
     def get()
       [
         {
           type_name: 'weekday',
           url: 'http://www.caltrain.com/schedules/weekdaytimetable.html',
-          name_xpath: 'th[2]',
         },
         {
           type_name: 'weekend',
           url: 'http://www.caltrain.com/schedules/weekend-timetable.html',
-          name_xpath: 'th[3]',
         },
       ].each { |item|
         puts "Visiting #{item[:type_name]}..."
         visit(item[:url])
-        doc = Nokogiri::HTML(page.html)
         ["NB_TT", "SB_TT"].each { |direction|
           puts "Getting #{item[:type_name]}-#{direction}..."
-          schedule = doc.xpath('//table[@class="' + direction + '"]/tbody/tr').map { |tr|
-            name_node = tr.at_xpath(item[:name_xpath])
-            next nil if getStyle(name_node)['color'].gsub(/[[:space:]]/, '') == 'rgb(0,128,0)' # shuttle bus
-            if name_node.children.size > 1
-              require 'pry'; binding.pry
-              throw "Unexpected cell"
-            end
-            name_node = name_node.children[0]
-            {
-              name: getName(name_node),
-              stop_times: tr.xpath('td').map { |td|
-                text_node = td
-                text_node = text_node.children[0] while !text_node.children.empty? and !text_node.children[0].text?
-                {
-                  service_type: getServiceType(getStyle(td), td),
-                  time: getTime(getStyle(text_node), text_node),
-                }
-              },
-            }
-          }.keep_if {|item| item != nil }
+
+          schedule = getSchedule(direction)
+          ASSERT(schedule.size >= 10, "Unexpected schedule size!")
+
           File.write("test/#{item[:type_name]}_#{direction}.json", schedule.to_json)
         }
       }
@@ -180,18 +212,12 @@ desc "Run test"
 task spec: :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
-  require 'capybara/poltergeist'
   require 'rack'
 
   Capybara.reset!
   Capybara.app = Rack::File.new File.dirname __FILE__
   Capybara.run_server = true
   Capybara.server = :webrick
-
-  Capybara.default_driver = :poltergeist
-  Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, timeout: 120, phantomjs_options: ['--load-images=false', '--disk-cache=false'])
-  end
 
   class Runner
     include Capybara::DSL
@@ -331,9 +357,7 @@ task :prepare_data do
   prepare_for("routes", "trips") do |routes, trips|
     valid_route_ids = routes
       .each { |route|
-        unless [2, 3].include? route.route_type
-          require 'pry'; binding.pry
-        end
+        ASSERT([2, 3].include? route.route_type)
       }
       .select { |route| route.route_type == 2 } # 2 for Rail, 3 for bus
       .map(&:route_id)
@@ -372,31 +396,23 @@ task :prepare_data do
       }
       .group_by(&:service_id)
       .mapHash { |service_id, items|
-        if items.size != 1
-          require 'pry'; binding.pry
-        end
+        ASSERT(items.size == 1)
         item = items[0]
         weekday_sum = [:monday, :tuesday, :wednesday, :thursday, :friday].inject(0) { |sum, day| sum + item[day]}
         # Weekday should be available all together or none of them. If not, check data.
-        unless [0, 5].include? weekday_sum
-          require 'pry'; binding.pry
-        end
+        ASSERT([0, 5].include? weekday_sum)
         # schedule should match their name
         if service_id.match(/weekday/i)
-          unless weekday_sum == 5 and item.saturday != 1 and item.sunday != 1
-            require 'pry'; binding.pry
-          end
+          ASSERT((weekday_sum == 5 and item.saturday != 1 and item.sunday != 1))
         end
         if service_id.match(/saturday/i)
           unless weekday_sum == 0 and item.saturday == 1 and item.sunday != 1
             warn "Service `#{service_id}` does not match their schedule: #{item}"
-            # require 'pry'; binding.pry
+            # FAIL()
           end
         end
         if service_id.match(/sunday/i)
-          unless weekday_sum == 0 and item.saturday != 1 and item.sunday == 1
-            require 'pry'; binding.pry
-          end
+          ASSERT((weekday_sum == 0 and item.saturday != 1 and item.sunday == 1))
         end
         {
           weekday: weekday_sum == 5,
@@ -435,9 +451,7 @@ task :prepare_data do
     stops = stops
       .each { |item|
         # check data (if its scheme is changed)
-        if item.stop_name !~ / Caltrain/
-          require 'pry'; binding.pry
-        end
+        ASSERT((item.stop_name ~ / Caltrain/))
       }
       .select { |item| item.stop_id.is_a?(Integer) }
       .sort_by(&:stop_lat).reverse # sort stations from north to south
@@ -477,9 +491,7 @@ task :prepare_data do
     times = stop_times
       .each { |item|
         # check data (if its scheme is changed)
-        if item.arrival_time != item.departure_time
-          require 'pry'; binding.pry
-        end
+        ASSERT(item.arrival_time == item.departure_time)
       }
       .group_by(&:trip_id)
       .mapHash { |trip_id, trips_values|
