@@ -135,8 +135,7 @@ task :download_test_data do
     def getName(node)
       node.text.strip
         .gsub(/[[:space:]]/, 32.chr) # unify all space chars
-        .gsub('22nd Street', '22nd St') # name mapping
-        .gsub('Mountain View', 'Mt View')
+        .gsub('So. San Francisco', 'South San Francisco')
         .gsub('SJ Diridon', 'San Jose Diridon')
     end
 
