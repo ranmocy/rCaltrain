@@ -15,7 +15,6 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
-    - $HOME/.travis_phantomjs/
 env:
   global:
     # android
@@ -29,7 +28,6 @@ env:
     - ADB_INSTALL_TIMEOUT=5 # minutes
     # ruby tests
     - RUBY_VERSION=2.4
-    - PHANTOMJS_VERSION=2.1.1
   matrix:
     - TEST_CASE=ruby
     - TEST_CASE=robolectric
@@ -66,17 +64,6 @@ android:
 before_install:
   - |
       if [ $TEST_CASE == "ruby" ]; then
-        echo "Checking PhantomJS"
-        export PATH=$HOME/.travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64/bin:$PATH
-        if [ "$(phantomjs --version)" != "$PHANTOMJS_VERSION" ]; then
-          echo "Upgrade PhantomJS"
-          rm -rf $HOME/.travis_phantomjs
-          mkdir -p $HOME/.travis_phantomjs
-          wget https://github.com/Medium/phantomjs/releases/download/v$PHANTOMJS_VERSION/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2
-          tar -xvf phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $HOME/.travis_phantomjs
-        fi
-        phantomjs -v
-
       elif [ $TEST_CASE == "robolectric" ]; then
         cd android/
         cp app/google-services.json.sample app/google-services.json
