@@ -55,10 +55,10 @@ task :download_test_data do
     SERVICE_TYPE_COLOR_MAPPING = {
       'rgba(240,178,161,1)' => ['bullet', 'Baby Bullet'], # light red
       'rgba(247,232,157,1)' => ['limited', 'Limited'], # yellow
-      'rgba(189,220,155,1)' => [nil, nil], # green for "Timed transfers for local service"
-      'rgba(0,0,0,0)' => [nil, 'Local'], # transparent
+      'rgba(0,0,0,0)'       => [nil, 'Local'], # transparent
       'rgba(255,255,255,1)' => [nil, 'Local'], # white
-      'rgba(0,0,0,1)' => [nil, 'SatOnly'] # black
+      'rgba(0,0,0,1)'       => [nil, 'SatOnly'], # black
+      'rgba(189,220,155,1)' => [nil, nil], # green for "Timed transfers for local service"
     }
     def getServiceType(node)
       class_list = node[:class].split(" ")
@@ -66,23 +66,17 @@ task :download_test_data do
 
       ASSERT(SERVICE_TYPE_COLOR_MAPPING.include?(color), 'Unexpected cell color:' + color)
       class_name, display_name = SERVICE_TYPE_COLOR_MAPPING[color]
-      ASSERT((!class_name or class_list.include?(class_name)), "Unexpected class name: Expect #{class_name} in #{class_list}.")
+      ASSERT((node.text.strip.empty? or !class_name or class_list.include?(class_name)),
+             "Unexpected class name: Expect #{class_name} in #{class_list}.")
 
       if display_name == nil
-        # first_cell_xpath = node.path.reverse.sub(/\]\d+\[RT/, 'RT').reverse
-
         parts = node.path.rpartition(/TR\[\d+\]/i)
         ASSERT(parts[1] != 'TR[1]', "Transfer can't be in the start station!")
         parts[1] = 'TR[1]'
         first_node_in_same_column = node.first(:xpath, parts.join(''))
         ASSERT(first_node_in_same_column, 'Can not find first cell in the column')
 
-        color = getStyle(first_node_in_same_column, :backgroundColor).gsub(/[[:space:]]/, '')
-        ASSERT(SERVICE_TYPE_COLOR_MAPPING.include?(color), 'Unexpected cell color:' + color)
-        class_name, display_name = SERVICE_TYPE_COLOR_MAPPING[color]
-        ASSERT(display_name, 'Can not find color')
-
-        display_name
+        getServiceType(first_node_in_same_column)
       else
         display_name
       end
@@ -154,30 +148,33 @@ task :download_test_data do
           FAIL("Unexpected cell")
         end
 
+        station_name = getName(name_nodes[0])
+        # Skip shuttle stop for SJ Diridon, in favor of train's schedule
+        if name_cell[:class].split(" ").include?('ct-shuttle') and station_name == 'San Jose Diridon'
+          next nil
+        end
+
         {
-          name: getName(name_nodes[0]),
+          name: station_name,
           stop_times:
             tr.all('td')
               .map { |td|
+                service_type = getServiceType(td)
+                is_pm_style = isPmStyle(td)
                 text = td.text
                   .gsub([160].pack('U*'), '')
                   .gsub([8211].pack('U*'), '')
                   .gsub([8212].pack('U*'), '')
                   .gsub(/[\+\*\-]/, '')
                   .strip
-                next nil if text.empty?
-
-                service_type = getServiceType(td)
-                is_pm_style = isPmStyle(td)
 
                 {
                   service_type: service_type,
                   time: getTime(text, service_type, is_pm_style),
                 }
               }
-              .filter { |data| data },
         }
-      }.keep_if {|item| item != nil }
+      }.keep_if { |data| data }
     end
 
     def get()
