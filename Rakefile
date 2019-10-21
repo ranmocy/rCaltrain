@@ -14,16 +14,16 @@ class File
   end
 end
 
-def ASSERT(condition, msg)
+def ASSERT(condition, msg = 'Failed assertion')
   unless condition
     require 'pry'; binding.pry
-    throw msg || 'Failed assertion'
+    throw msg
   end
 end
 
-def FAIL(msg)
+def FAIL(msg = 'Failed')
   require 'pry'; binding.pry
-  throw msg || 'Failed'
+  throw msg
 end
 
 task default: :spec
@@ -194,7 +194,10 @@ task :download_test_data do
           puts "Getting #{item[:type_name]}-#{direction}..."
 
           schedule = getSchedule(direction)
-          ASSERT(schedule.size >= 10, "Unexpected schedule size!")
+          ASSERT(schedule.size >= 10, "schedule size is too small")
+          sizes = schedule.map { |t| t[:stop_times].size }.uniq
+          ASSERT(sizes.size == 1, 'stop_times sizes are not equal')
+          ASSERT(sizes[0] > 5, 'stop_times are too few')
 
           File.write("test/#{item[:type_name]}_#{direction}.json", schedule.to_json)
         }
@@ -206,6 +209,107 @@ task :download_test_data do
 end
 
 desc "Run test"
+task :run_test do
+  require 'capybara'
+  require 'capybara/dsl'
+  require 'webdrivers/chromedriver'
+  require 'rack'
+  require 'json'
+
+  Capybara.reset!
+  Capybara.configure do |config|
+    # Start a local server for serving
+    config.app = Rack::File.new File.dirname __FILE__
+    config.run_server = true
+    config.server = :webrick
+    # Config test driver
+    config.default_driver = :selenium_chrome_headless
+    config.default_max_wait_time = 1
+  end
+
+  class Runner
+    include Capybara::DSL
+
+    def fixTimeFormat(time_str)
+      parts = time_str.split(":")
+      parts[0] = (parts[0].to_i % 24).to_s.rjust(2, '0')
+      parts.join(":")
+    end
+
+    def run
+      puts "Loading website..."
+      visit('/index.html')
+
+      # Get all station names
+      find('#from').click()
+      all_station_names = all('#from .complete-dropdown .complete-dropdown-item').map(&:text)
+      find('body').click() # dimiss the dropdown
+
+      ['weekday', 'saturday', 'sunday'].each { |schedule_name|
+        ['NB_TT', 'SB_TT'].each { |direction|
+          puts "Testing for #{schedule_name} #{direction}..."
+          find(".when-button[value=#{schedule_name}]").click()
+
+          type_name = schedule_name == 'weekday' ? schedule_name : 'weekend'
+          puts "Loading test data #{type_name}_#{direction}..."
+          schedule = JSON.parse(File.read("test/#{type_name}_#{direction}.json"))
+
+          test_count = 0
+          puts "Running tests..."
+          schedule.each_with_index { |from, from_index|
+            from_name, from_stop_times = from.values_at('name', 'stop_times')
+            ASSERT(all_station_names.include?(from_name))
+            find('#from').fill_in with: from_name
+
+            schedule.each_with_index { |to, to_index|
+              next unless from_index < to_index
+              to_name, to_stop_times = to.values_at('name', 'stop_times')
+              ASSERT(all_station_names.include?(to_name))
+              find('#to').fill_in with: to_name
+
+              ASSERT(from_stop_times.size == to_stop_times.size)
+
+              puts "Testing from #{from_name} to #{to_name}..."
+
+              # Expects: [from_time, to_time]
+              expects = from_stop_times.zip(to_stop_times).keep_if { |from_stop, to_stop|
+                from_stop['time'] and to_stop['time']
+              }.each { |from_stop, to_stop|
+                ASSERT(from_stop['service_type'] == to_stop['service_type'])
+              }.delete_if { |from_stop, to_stop|
+                from_stop['service_type'] == 'SatOnly' and schedule_name != 'saturday'
+              }.map { |from_stop, to_stop|
+                [from_stop['time'], to_stop['time']]
+              }.sort.map { |from_time, to_time|
+                [fixTimeFormat(from_time), fixTimeFormat(to_time)]
+              }
+
+              # Actuals: [from_time, to_time]
+              actuals = all('#result .trip').map { |trip|
+                departure_time = trip.find('.departure').text
+                arrival_time = trip.find('.arrival').text
+                [departure_time, arrival_time]
+              }
+
+              # Check results
+              ASSERT(expects.size == actuals.size, "Result length mismatch: #{from_name}=>#{to_name} when #{schedule_name}")
+              ASSERT(expects == actuals, "Results mismatch: #{expects} <> #{actuals}")
+
+              test_count += 1
+            }
+          }
+
+          ASSERT(test_count > 100, 'Too few test cases')
+          puts "Finish test cases: #{test_count}"
+        }
+      }
+    end
+  end
+
+  Runner.new.run
+end
+
+desc "Run test against latest test data"
 task spec: :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
