@@ -127,8 +127,8 @@ task :download_test_data do
       end
     end
 
-    def getName(node)
-      node.text.strip
+    def normalizeName(text)
+      text.strip
         .gsub(/[[:space:]]/, 32.chr) # unify all space chars
         .gsub('So. San Francisco', 'South San Francisco')
         .gsub('SJ Diridon', 'San Jose Diridon')
@@ -137,18 +137,14 @@ task :download_test_data do
     def getSchedule(direction)
       all(:xpath, "//table[@class=\"#{direction}\"]/tbody/tr").map { |tr|
         name_cell = tr.find(:xpath, 'th[2]')
-        name_nodes = name_cell.all('a')
-        case name_nodes.size
-        when 0
-          ASSERT(name_cell.text == 'Shuttle Bus', 'Expect text to be Shuttle Bus')
-          next nil # skip shuttle bus
-        when 1
-          # continue
-        else
-          FAIL("Unexpected cell")
+
+        # skip shuttle bus
+        if name_cell[:class].split(' ').include?('ct-shuttle')
+          ASSERT(['Shuttle Bus', 'Departs SJ Diridon', 'Arrives Tamien', 'Departs Tamien', 'Arrives SJ Diridon'].include?(name_cell.text))
+          next nil
         end
 
-        station_name = getName(name_nodes[0])
+        station_name = normalizeName(name_cell.find('a').text)
         # Skip shuttle stop for SJ Diridon, in favor of train's schedule
         if name_cell[:class].split(" ").include?('ct-shuttle') and station_name == 'San Jose Diridon'
           next nil
