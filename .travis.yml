@@ -4,10 +4,13 @@ branches:
   except:
     - gh-pages
 sudo: false
-dist: trusty
+dist: trusty # seems like it's required for Android testing
+addons:
+  chrome: stable
 
 language: android
 jdk: oraclejdk8
+
 before_cache:
   -rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
   -rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -63,8 +66,7 @@ android:
     - google-gdk-license-.+
 before_install:
   - |
-      if [ $TEST_CASE == "ruby" ]; then
-      elif [ $TEST_CASE == "robolectric" ]; then
+      if [[ $TEST_CASE == "robolectric" ]]; then
         cd android/
         cp app/google-services.json.sample app/google-services.json
 
@@ -75,7 +77,7 @@ before_install:
         chmod +x gradlew
         ./gradlew dependencies
 
-      elif [ $TEST_CASE == "emulator" ]; then
+      elif [[ $TEST_CASE == "emulator" ]]; then
         cd android/
         cp app/google-services.json.sample app/google-services.json
 
@@ -93,14 +95,17 @@ before_install:
       fi
 before_script:
   - |
-      if [ $TEST_CASE == "ruby" ]; then
+      if [[ $TEST_CASE == "ruby" ]]; then
+        export DISPLAY=:99.0
+        sh -e /etc/init.d/xvfb start
+        sleep 3 # give xvfb some time to start
         rvm install $RUBY_VERSION
         bundle install
 
-      elif [ $TEST_CASE == "robolectric" ]; then
+      elif [[ $TEST_CASE == "robolectric" ]]; then
         echo "no-op"
 
-      elif [ $TEST_CASE == "emulator" ]; then
+      elif [[ $TEST_CASE == "emulator" ]]; then
         ls -l $ANDROID_HOME/tools
         ls -l $ANDROID_HOME/tools/bin
         ls -l $ANDROID_HOME/platforms
@@ -140,12 +145,12 @@ before_script:
       fi
 script:
   - |
-      if [ $TEST_CASE == "ruby" ]; then
+      if [[ $TEST_CASE == "ruby" ]]; then
         bundle exec rake || exit 1
 
-      elif [ $TEST_CASE == "robolectric" ]; then
+      elif [[ $TEST_CASE == "robolectric" ]]; then
         ./gradlew clean test || ./gradlew test --info || exit 1
 
-      elif [ $TEST_CASE == "emulator" ]; then
+      elif [[ $TEST_CASE == "emulator" ]]; then
         ./gradlew clean build connectedCheck -PdisablePreDex --stacktrace || ./gradlew connectedCheck --info -PdisablePreDex --stacktrace || exit 1
       fi
