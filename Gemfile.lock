@@ -50,6 +50,7 @@ PLATFORMS
 
 DEPENDENCIES
   capybara
+  nokogiri
   plist
   pry
   pry-stack_explorer

@@ -33,6 +33,7 @@ task :download_test_data do
   require 'capybara'
   require 'capybara/dsl'
   require 'webdrivers/chromedriver'
+  require 'nokogiri'
   require 'json'
 
   Capybara.reset!
@@ -45,35 +46,49 @@ task :download_test_data do
   class WebScraper
     include Capybara::DSL
 
-    def getStyle(node, style)
-      node.style(style)[style.to_s]
+    def getStyle(node, style_name)
+      ASSERT(['backgroundColor', 'color', 'fontWeight'].include?(style_name.to_s))
+      unless node.instance_variable_defined?(:@style)
+        # serialization is expensive, so we only return what we need
+        style = page.evaluate_script("\
+        (function() {
+          var temp_style = window.getComputedStyle(document.querySelector('#{node.css_path}'))
+          return {
+            backgroundColor: temp_style.backgroundColor,
+            color: temp_style.color,
+            fontWeight: temp_style.fontWeight,
+          }
+        })()")
+        node.instance_variable_set(:@style, style)
+      end
+      style = node.instance_variable_get(:@style)
+      style[style_name.to_s]
     end
 
     # A map from color to [class_name, display_name]
     # If class_name is nil, don't check it
     # If display_name is nil, service type is determined by the first cell in the same column
     SERVICE_TYPE_COLOR_MAPPING = {
-      'rgba(240,178,161,1)' => ['bullet', 'Baby Bullet'], # light red
-      'rgba(247,232,157,1)' => ['limited', 'Limited'], # yellow
+      'rgb(240,178,161)' => ['bullet', 'Baby Bullet'], # light red
+      'rgb(247,232,157)' => ['limited', 'Limited'], # yellow
       'rgba(0,0,0,0)'       => [nil, 'Local'], # transparent
-      'rgba(255,255,255,1)' => [nil, 'Local'], # white
-      'rgba(0,0,0,1)'       => [nil, 'SatOnly'], # black
-      'rgba(189,220,155,1)' => [nil, nil], # green for "Timed transfers for local service"
+      'rgb(255,255,255)' => [nil, 'Local'], # white
+      'rgb(0,0,0)'       => [nil, 'SatOnly'], # black
+      'rgb(189,220,155)' => [nil, nil], # green for "Timed transfers for local service"
     }
     def getServiceType(node)
-      class_list = node[:class].split(" ")
       color = getStyle(node, :backgroundColor).gsub(/[[:space:]]/, '')
 
       ASSERT(SERVICE_TYPE_COLOR_MAPPING.include?(color), 'Unexpected cell color:' + color)
       class_name, display_name = SERVICE_TYPE_COLOR_MAPPING[color]
-      ASSERT((node.text.strip.empty? or !class_name or class_list.include?(class_name)),
-             "Unexpected class name: Expect #{class_name} in #{class_list}.")
+      ASSERT((node.text.strip.empty? or !class_name or node.classes.include?(class_name)),
+             "Unexpected class name: Expect #{class_name} in #{node.classes}.")
 
       if display_name == nil
-        parts = node.path.rpartition(/TR\[\d+\]/i)
-        ASSERT(parts[1] != 'TR[1]', "Transfer can't be in the start station!")
-        parts[1] = 'TR[1]'
-        first_node_in_same_column = node.first(:xpath, parts.join(''))
+        parts = node.path.rpartition(/tr\[\d+\]/i)
+        ASSERT(parts[1] != 'tr[1]', "Transfer can't be in the start station!")
+        parts[1] = 'tr[1]'
+        first_node_in_same_column = node.at_xpath(parts.join(''))
         ASSERT(first_node_in_same_column, 'Can not find first cell in the column')
 
         getServiceType(first_node_in_same_column)
@@ -134,41 +149,40 @@ task :download_test_data do
         .gsub('SJ Diridon', 'San Jose Diridon')
     end
 
-    def getSchedule(direction)
-      all(:xpath, "//table[@class=\"#{direction}\"]/tbody/tr").map { |tr|
-        name_cell = tr.find(:xpath, 'th[2]')
+    def getSchedule(doc, direction)
+      doc.xpath("//table[@class=\"#{direction}\"]/tbody/tr").map { |tr|
+        name_cell = tr.at_xpath('th[2]')
 
         # skip shuttle bus
-        if name_cell[:class].split(' ').include?('ct-shuttle')
+        if name_cell.classes.include?('ct-shuttle')
           ASSERT(['Shuttle Bus', 'Departs SJ Diridon', 'Arrives Tamien', 'Departs Tamien', 'Arrives SJ Diridon'].include?(name_cell.text))
           next nil
         end
 
-        station_name = normalizeName(name_cell.find('a').text)
+        station_name = normalizeName(name_cell.at_xpath('a').text)
         # Skip shuttle stop for SJ Diridon, in favor of train's schedule
-        if name_cell[:class].split(" ").include?('ct-shuttle') and station_name == 'San Jose Diridon'
+        if name_cell.classes.include?('ct-shuttle') and station_name == 'San Jose Diridon'
           next nil
         end
 
         {
           name: station_name,
           stop_times:
-            tr.all('td')
-              .map { |td|
-                service_type = getServiceType(td)
-                is_pm_style = isPmStyle(td)
-                text = td.text
-                  .gsub([160].pack('U*'), '')
-                  .gsub([8211].pack('U*'), '')
-                  .gsub([8212].pack('U*'), '')
-                  .gsub(/[\+\*\-]/, '')
-                  .strip
+            tr.xpath('td').map { |td|
+              service_type = getServiceType(td)
+              is_pm_style = isPmStyle(td)
+              text = td.text
+                .gsub([160].pack('U*'), '')
+                .gsub([8211].pack('U*'), '')
+                .gsub([8212].pack('U*'), '')
+                .gsub(/[\+\*\-]/, '')
+                .strip
 
-                {
-                  service_type: service_type,
-                  time: getTime(text, service_type, is_pm_style),
-                }
+              {
+                service_type: service_type,
+                time: getTime(text, service_type, is_pm_style),
               }
+            }
         }
       }.keep_if { |data| data }
     end
@@ -186,10 +200,11 @@ task :download_test_data do
       ].each { |item|
         puts "Visiting #{item[:type_name]}..."
         visit(item[:url])
+        doc = Nokogiri::HTML(page.html)
         ["NB_TT", "SB_TT"].each { |direction|
           puts "Getting #{item[:type_name]}-#{direction}..."
 
-          schedule = getSchedule(direction)
+          schedule = getSchedule(doc, direction)
           ASSERT(schedule.size >= 10, "schedule size is too small")
           sizes = schedule.map { |t| t[:stop_times].size }.uniq
           ASSERT(sizes.size == 1, 'stop_times sizes are not equal')
