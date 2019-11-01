@@ -1,7 +1,7 @@
 package me.ranmocy.rcaltrain;
 
 import android.content.Context;
-import android.support.annotation.RawRes;
+import androidx.annotation.RawRes;
 import android.util.Log;
 
 import org.json.JSONArray;
