@@ -36,7 +36,7 @@ import me.ranmocy.rcaltrain.models.ScheduleResult;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 25)
+@Config(sdk = 25)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
