@@ -36,6 +36,7 @@ public abstract class ScheduleDatabase extends RoomDatabase {
                             .databaseBuilder(context.getApplicationContext(),
                                              ScheduleDatabase.class,
                                              "schedule")
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }
