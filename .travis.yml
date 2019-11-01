@@ -21,10 +21,10 @@ cache:
 env:
   global:
     # android
-    - ANDROID_API_LEVEL=26
+    - ANDROID_API_LEVEL=29
     # android emulator tests
-    - EMULATOR_API_LEVEL=25 # 26 not yet available
-    - ANDROID_BUILD_TOOLS_VERSION=26.0.1
+    - EMULATOR_API_LEVEL=29
+    - ANDROID_BUILD_TOOLS_VERSION=29.0.2
     - ANDROID_ABI=armeabi-v7a
     - ANDROID_TAG=google_apis
     - MALLOC_ARENA_MAX=2 # https://github.com/travis-ci/travis-ci/issues/3695
@@ -34,13 +34,13 @@ env:
   matrix:
     - TEST_CASE=ruby
     - TEST_CASE=robolectric
-    - TEST_CASE=emulator EMULATOR_API_LEVEL=25
-    - TEST_CASE=emulator EMULATOR_API_LEVEL=15
+    - TEST_CASE=emulator EMULATOR_API_LEVEL=29
+    - TEST_CASE=emulator EMULATOR_API_LEVEL=16
 matrix:
   fast_finish: true
   allow_failures:
-    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=25
-    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=15
+    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=29
+    - env: TEST_CASE=emulator EMULATOR_API_LEVEL=16
 android:
   components:
     - tools # Note that the tools section appears twice on purpose as it’s required to get the newest Android SDK tools.
