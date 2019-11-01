@@ -1,24 +1,33 @@
 package me.ranmocy.rcaltrain.database;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.PrimaryKey;
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.PrimaryKey;
 
-@Entity(tableName = "trips", foreignKeys = {
-        @ForeignKey(entity = Service.class, parentColumns = "id", childColumns = "service_id", onDelete = ForeignKey.CASCADE)
-})
+@Entity(
+    tableName = "trips",
+    foreignKeys = {
+      @ForeignKey(
+          entity = Service.class,
+          parentColumns = "id",
+          childColumns = "service_id",
+          onDelete = ForeignKey.CASCADE)
+    })
 public final class Trip {
 
-    public Trip(String id, String serviceId) {
-        this.id = id;
-        this.serviceId = serviceId;
-    }
+  public Trip(@NonNull String id, @NonNull String serviceId) {
+    this.id = id;
+    this.serviceId = serviceId;
+  }
 
-    @PrimaryKey
-    @ColumnInfo(name = "id")
-    public String id;
+  @PrimaryKey
+  @NonNull
+  @ColumnInfo(name = "id")
+  public String id;
 
-    @ColumnInfo(name = "service_id", index = true)
-    public String serviceId;
+  @NonNull
+  @ColumnInfo(name = "service_id", index = true)
+  public String serviceId;
 }
