@@ -1,6 +1,5 @@
 package me.ranmocy.rcaltrain.database;
 
-import androidx.room.Room;
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
@@ -27,16 +26,17 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import me.ranmocy.rcaltrain.BuildConfig;
+import androidx.room.Room;
 import me.ranmocy.rcaltrain.ScheduleLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 25)
+@Config(sdk = 28)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
@@ -87,8 +87,9 @@ public class ScheduleDatabaseTest {
         }
 
         List<String> actual = db.getStationNamesTesting();
-        assertThat(actual).containsAllIn(weekday).inOrder();
-        assertThat(actual).containsAllIn(weekend).inOrder();
+        assertThat(actual).containsNoDuplicates();
+        assertThat(actual).containsAtLeastElementsIn(weekday).inOrder();
+        assertThat(actual).containsAtLeastElementsIn(weekend).inOrder();
     }
 
     @Test
@@ -132,10 +133,10 @@ public class ScheduleDatabaseTest {
 
         List<String> stationNames = db.getStationNamesTesting();
         assertThat(stationNames).contains("San Francisco");
-        assertThat(stationNames).contains("22nd St");
+        assertThat(stationNames).contains("22nd Street");
 
         List<String> results = mapResults(db.getResultsTesting("San Francisco",
-                                                               "22nd St",
+                                                               "22nd Street",
                                                                ServiceType.SERVICE_NOW,
                                                                today,
                                                                now));
@@ -184,8 +185,9 @@ public class ScheduleDatabaseTest {
                 return;
         }
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
+        // Set to the nearest day with same day_of_week
         long diff = Calendar.getInstance().getTimeInMillis() - today.getTimeInMillis();
-        int days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(diff) * 1.0 / 7);
+        int days = (int) Math.floor(TimeUnit.MILLISECONDS.toDays(diff) * 1.0 / 7);
         today.setTimeInMillis(today.getTimeInMillis() + TimeUnit.DAYS.toMillis(days * 7));
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
     }
@@ -314,8 +316,8 @@ public class ScheduleDatabaseTest {
                                                                            today,
                                                                            now));
 
-                assertThat(resultTimes)
-                        .named(String.format("(%s -> %s)", fromName, toName))
+                assertWithMessage(String.format("(%s -> %s)", fromName, toName))
+                        .that(resultTimes)
                         .containsExactlyElementsIn(expectTimes)
                         .inOrder();
             }

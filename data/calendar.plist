@@ -28,6 +28,19 @@
 		<key>weekday</key>
 		<false/>
 	</dict>
+	<key>c_17845_b_none_d_127</key>
+	<dict>
+		<key>end_date</key>
+		<integer>20191027</integer>
+		<key>saturday</key>
+		<false/>
+		<key>start_date</key>
+		<integer>20191027</integer>
+		<key>sunday</key>
+		<false/>
+		<key>weekday</key>
+		<false/>
+	</dict>
 	<key>c_17997_b_22470_d_31</key>
 	<dict>
 		<key>end_date</key>

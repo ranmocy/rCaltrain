@@ -538,9 +538,16 @@ task :prepare_data do
     valid_service_ids = calendar.keys
 
     dates = calendar_dates
+      .select { |service|
+        if service.date < now_date
+          warn "Outdated service_date #{service.service_id} at #{service.date}."
+          false
+        else
+          true
+        end
+      }
       .each { |service|
-        warn "Outdated service_date service #{service.service_id} at #{service.date}." unless valid_service_ids.include? service.service_id
-        warn "Outdated service_date #{service.service_id} at #{service.date}." if service.date < now_date
+        ASSERT(valid_service_ids.include?(service.service_id))
       }
       .group_by(&:service_id)
       .mapHash { |service_id, items|
@@ -621,6 +628,7 @@ task :prepare_data do
         route_trips
           .group_by(&:service_id)
           .mapHash { |service_id, service_trips|
+            ASSERT(valid_service_ids.include?(service_id))
             service_trips
               .group_by(&:trip_id)
               .mapHash { |trip_id, trip_trips|
@@ -637,6 +645,7 @@ task :prepare_data do
         routes_values
           .map(&:route_id)
           .inject({}) { |h, route_id|
+            ASSERT(trips.include?(route_id))
             h.merge(trips[route_id])
           }
       }
