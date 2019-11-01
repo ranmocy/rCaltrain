@@ -87,7 +87,9 @@ public class ScheduleDatabaseTest {
         }
 
         List<String> actual = db.getStationNamesTesting();
-        assertThat(actual).containsExactly(weekday, weekend).inOrder();
+        assertThat(actual).containsNoDuplicates();
+        assertThat(actual).containsAtLeastElementsIn(weekday).inOrder();
+        assertThat(actual).containsAtLeastElementsIn(weekend).inOrder();
     }
 
     @Test
@@ -123,18 +125,21 @@ public class ScheduleDatabaseTest {
     @Test
     public void test_now() {
         today.clear();
-        today.set(2017, Calendar.OCTOBER, 3);
-        assertThat(Converters.fromCalendar(today)).isEqualTo(20171003);
+        today.set(2019, Calendar.OCTOBER, 29);
+        assertThat(Converters.fromCalendar(today)).isEqualTo(20191029);
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(Calendar.TUESDAY);
 
         assertThat(now.toString()).isEqualTo("09:59");
 
-        List<String> stationNames = db.getStationNamesTesting();
-        assertThat(stationNames).contains("San Francisco");
-        assertThat(stationNames).contains("22nd St");
+        String fromStationName = "San Francisco";
+        String toStationName = "22nd Street";
 
-        List<String> results = mapResults(db.getResultsTesting("San Francisco",
-                                                               "22nd St",
+        List<String> stationNames = db.getStationNamesTesting();
+        assertThat(stationNames).contains(fromStationName);
+        assertThat(stationNames).contains(toStationName);
+
+        List<String> results = mapResults(db.getResultsTesting(fromStationName,
+                                                               toStationName,
                                                                ServiceType.SERVICE_NOW,
                                                                today,
                                                                now));
@@ -152,7 +157,7 @@ public class ScheduleDatabaseTest {
                                  "19:30 => 19:34",
                                  "20:30 => 20:34",
                                  "21:30 => 21:34",
-                                 "22:40 => 22:44",
+                                 "22:30 => 22:34",
                                  "00:05 => 00:10")
                 .inOrder();
     }
@@ -183,8 +188,9 @@ public class ScheduleDatabaseTest {
                 return;
         }
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
+        // Set to the nearest day with same day_of_week
         long diff = Calendar.getInstance().getTimeInMillis() - today.getTimeInMillis();
-        int days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(diff) * 1.0 / 7);
+        int days = (int) Math.floor(TimeUnit.MILLISECONDS.toDays(diff) * 1.0 / 7);
         today.setTimeInMillis(today.getTimeInMillis() + TimeUnit.DAYS.toMillis(days * 7));
         assertThat(today.get(Calendar.DAY_OF_WEEK)).isEqualTo(day);
     }
