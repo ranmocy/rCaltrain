@@ -31,21 +31,21 @@ import static org.hamcrest.CoreMatchers.is;
 @LargeTest
 public class ApplicationTest {
 
+  private static final String FROM_STATION_NAME = "San Francisco";
+  private static final String TO_STATION_NAME = "22nd Street";
+
   @Rule
   public ActivityTestRule<HomeActivity> mActivityRule = new ActivityTestRule<>(HomeActivity.class);
 
   @Test
   public void test_schedule_weekday() {
-    String fromName = "San Francisco";
-    String toName = "22nd St";
-
     onView(withId(R.id.btn_week)).perform(click());
 
     onView(withId(R.id.input_departure)).perform(click());
-    onData(is(fromName)).perform(click());
+    onData(is(FROM_STATION_NAME)).perform(click());
 
     onView(withId(R.id.input_arrival)).perform(click());
-    onData(is(toName)).perform(click());
+    onData(is(TO_STATION_NAME)).perform(click());
 
     List<String> expects =
         Arrays.asList(
@@ -78,31 +78,30 @@ public class ApplicationTest {
             "19:30 => 19:34",
             "20:30 => 20:34",
             "21:30 => 21:34",
-            "22:40 => 22:44",
+            "22:30 => 22:34",
             "00:05 => 00:10");
 
     onView(withId(R.id.results))
-        .check(matches(new ResultListMatcher(fromName, toName, expects.size())));
+        .check(matches(new ResultListMatcher(FROM_STATION_NAME, TO_STATION_NAME, expects.size())));
 
     DataInteraction interaction = onData(anything()).inAdapterView(withId(R.id.results));
     for (int l = expects.size() - 1; l >= 0; l--) {
       String expect = expects.get(l);
-      interaction.atPosition(l).check(matches(new ResultViewMatcher(fromName, toName, l, expect)));
+      interaction
+          .atPosition(l)
+          .check(matches(new ResultViewMatcher(FROM_STATION_NAME, TO_STATION_NAME, l, expect)));
     }
   }
 
   @Test
   public void test_schedule_saturday() {
-    String fromName = "San Francisco";
-    String toName = "22nd St";
-
     onView(withId(R.id.btn_sat)).perform(click());
 
     onView(withId(R.id.input_departure)).perform(click());
-    onData(is(fromName)).perform(click());
+    onData(is(FROM_STATION_NAME)).perform(click());
 
     onView(withId(R.id.input_arrival)).perform(click());
-    onData(is(toName)).perform(click());
+    onData(is(TO_STATION_NAME)).perform(click());
 
     List<String> expects =
         Arrays.asList(
@@ -116,31 +115,30 @@ public class ApplicationTest {
             "18:37 => 18:41",
             "20:07 => 20:11",
             "21:37 => 21:41",
-            "22:51 => 22:55",
+            "22:50 => 22:54",
             "00:05 => 00:10");
 
     onView(withId(R.id.results))
-        .check(matches(new ResultListMatcher(fromName, toName, expects.size())));
+        .check(matches(new ResultListMatcher(FROM_STATION_NAME, TO_STATION_NAME, expects.size())));
 
     DataInteraction interaction = onData(anything()).inAdapterView(withId(R.id.results));
     for (int l = expects.size() - 1; l >= 0; l--) {
       String expect = expects.get(l);
-      interaction.atPosition(l).check(matches(new ResultViewMatcher(fromName, toName, l, expect)));
+      interaction
+          .atPosition(l)
+          .check(matches(new ResultViewMatcher(FROM_STATION_NAME, TO_STATION_NAME, l, expect)));
     }
   }
 
   @Test
   public void test_schedule_sunday() {
-    String fromName = "San Francisco";
-    String toName = "22nd St";
-
     onView(withId(R.id.btn_sun)).perform(click());
 
     onView(withId(R.id.input_departure)).perform(click());
-    onData(is(fromName)).perform(click());
+    onData(is(FROM_STATION_NAME)).perform(click());
 
     onView(withId(R.id.input_arrival)).perform(click());
-    onData(is(toName)).perform(click());
+    onData(is(TO_STATION_NAME)).perform(click());
 
     List<String> expects =
         Arrays.asList(
@@ -156,12 +154,14 @@ public class ApplicationTest {
             "21:37 => 21:41");
 
     onView(withId(R.id.results))
-        .check(matches(new ResultListMatcher(fromName, toName, expects.size())));
+        .check(matches(new ResultListMatcher(FROM_STATION_NAME, TO_STATION_NAME, expects.size())));
 
     DataInteraction interaction = onData(anything()).inAdapterView(withId(R.id.results));
     for (int l = expects.size() - 1; l >= 0; l--) {
       String expect = expects.get(l);
-      interaction.atPosition(l).check(matches(new ResultViewMatcher(fromName, toName, l, expect)));
+      interaction
+          .atPosition(l)
+          .check(matches(new ResultViewMatcher(FROM_STATION_NAME, TO_STATION_NAME, l, expect)));
     }
   }
 
