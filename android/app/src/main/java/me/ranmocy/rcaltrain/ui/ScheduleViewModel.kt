@@ -1,10 +1,10 @@
 package me.ranmocy.rcaltrain.ui
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import android.content.Context
 import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.database.ScheduleDatabase
 import me.ranmocy.rcaltrain.models.ScheduleResult

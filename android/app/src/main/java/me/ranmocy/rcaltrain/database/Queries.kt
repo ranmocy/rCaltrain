@@ -1,6 +1,6 @@
 package me.ranmocy.rcaltrain.database
 
-import me.ranmocy.rcaltrain.database.ScheduleDao.*
+import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType
 
 private const val FROM_STATION_ID = "SELECT id FROM stations WHERE name = :from"
 private const val TO_STATION_ID = "SELECT id FROM stations WHERE name = :to"

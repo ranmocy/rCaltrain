@@ -1,12 +1,6 @@
 package me.ranmocy.rcaltrain
 
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.LifecycleRegistryOwner
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -14,6 +8,12 @@ import android.view.View
 import android.widget.ListView
 import android.widget.RadioGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.LifecycleRegistryOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.google.firebase.analytics.FirebaseAnalytics
 import me.ranmocy.rcaltrain.database.ScheduleDao
 import me.ranmocy.rcaltrain.models.ScheduleResult
@@ -64,8 +64,12 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistr
             ScheduleDao.ServiceType.SERVICE_SUNDAY -> scheduleGroup.check(R.id.btn_sun)
         }
 
-        scheduleViewModel.getStations(this).observe(this, Observer { stationNames -> stationsAdapter.setData(stationNames ?: ArrayList<String>()) })
-        scheduleViewModel.results.observe(this, Observer { results -> updateUI(results ?: ArrayList<ScheduleResult>()) })
+        scheduleViewModel.getStations(this).observe(this, Observer { stationNames ->
+            stationsAdapter.setData(stationNames ?: ArrayList<String>())
+        })
+        scheduleViewModel.results.observe(this, Observer { results ->
+            updateUI(results ?: ArrayList<ScheduleResult>())
+        })
 
         // Init schedule
         reschedule()
