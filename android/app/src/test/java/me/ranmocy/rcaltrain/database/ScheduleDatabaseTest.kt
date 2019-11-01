@@ -23,7 +23,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [16, 28])
 class ScheduleDatabaseTest {
 
     private var today: Calendar? = null
