@@ -2,17 +2,17 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5032ca2ad3de0b8999e6094ec46ddcb8",
+    "identityHash": "f3ff7f8244aea968d5775b2b17d22357",
     "entities": [
       {
         "tableName": "services",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT, `weekday` INTEGER NOT NULL, `saturday` INTEGER NOT NULL, `sunday` INTEGER NOT NULL, `start_date` INTEGER, `end_date` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `weekday` INTEGER NOT NULL, `saturday` INTEGER NOT NULL, `sunday` INTEGER NOT NULL, `start_date` INTEGER NOT NULL, `end_date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "weekday",
@@ -36,13 +36,13 @@
             "fieldPath": "startDate",
             "columnName": "start_date",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "endDate",
             "columnName": "end_date",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -56,7 +56,7 @@
       },
       {
         "tableName": "service_dates",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `service_id` TEXT, `date` INTEGER, `type` INTEGER NOT NULL, FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `service_id` TEXT NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -68,13 +68,13 @@
             "fieldPath": "serviceId",
             "columnName": "service_id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "date",
             "columnName": "date",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "type",
@@ -96,7 +96,7 @@
             "columnNames": [
               "service_id"
             ],
-            "createSql": "CREATE  INDEX `index_service_dates_service_id` ON `${TABLE_NAME}` (`service_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_service_dates_service_id` ON `${TABLE_NAME}` (`service_id`)"
           }
         ],
         "foreignKeys": [
@@ -115,7 +115,7 @@
       },
       {
         "tableName": "stations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -127,7 +127,7 @@
             "fieldPath": "name",
             "columnName": "name",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -141,7 +141,7 @@
       },
       {
         "tableName": "stops",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trip_id` TEXT, `sequence` INTEGER NOT NULL, `station_id` INTEGER NOT NULL, `time` INTEGER, FOREIGN KEY(`trip_id`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`station_id`) REFERENCES `stations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trip_id` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `station_id` INTEGER NOT NULL, `time` INTEGER NOT NULL, FOREIGN KEY(`trip_id`) REFERENCES `trips`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`station_id`) REFERENCES `stations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -153,7 +153,7 @@
             "fieldPath": "tripId",
             "columnName": "trip_id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "sequence",
@@ -171,7 +171,7 @@
             "fieldPath": "time",
             "columnName": "time",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -187,7 +187,7 @@
             "columnNames": [
               "trip_id"
             ],
-            "createSql": "CREATE  INDEX `index_stops_trip_id` ON `${TABLE_NAME}` (`trip_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_stops_trip_id` ON `${TABLE_NAME}` (`trip_id`)"
           },
           {
             "name": "index_stops_station_id",
@@ -195,7 +195,7 @@
             "columnNames": [
               "station_id"
             ],
-            "createSql": "CREATE  INDEX `index_stops_station_id` ON `${TABLE_NAME}` (`station_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_stops_station_id` ON `${TABLE_NAME}` (`station_id`)"
           }
         ],
         "foreignKeys": [
@@ -225,19 +225,19 @@
       },
       {
         "tableName": "trips",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT, `service_id` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `service_id` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`service_id`) REFERENCES `services`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "serviceId",
             "columnName": "service_id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -253,7 +253,7 @@
             "columnNames": [
               "service_id"
             ],
-            "createSql": "CREATE  INDEX `index_trips_service_id` ON `${TABLE_NAME}` (`service_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trips_service_id` ON `${TABLE_NAME}` (`service_id`)"
           }
         ],
         "foreignKeys": [
@@ -271,9 +271,10 @@
         ]
       }
     ],
+    "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"5032ca2ad3de0b8999e6094ec46ddcb8\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f3ff7f8244aea968d5775b2b17d22357')"
     ]
   }
 }

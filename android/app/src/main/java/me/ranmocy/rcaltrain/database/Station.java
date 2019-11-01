@@ -1,5 +1,6 @@
 package me.ranmocy.rcaltrain.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -7,7 +8,7 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "stations")
 public final class Station {
 
-    public Station(int id, String name) {
+    public Station(int id, @NonNull String name) {
         this.id = id;
         this.name = name;
     }
@@ -16,6 +17,7 @@ public final class Station {
     @ColumnInfo(name = "id")
     public int id;
 
+    @NonNull
     @ColumnInfo(name = "name")
     public String name;
 }

@@ -1,5 +1,6 @@
 package me.ranmocy.rcaltrain.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
@@ -15,7 +16,7 @@ import java.util.Calendar;
 })
 public final class ServiceDate {
 
-    public ServiceDate(String serviceId, Calendar date, int type) {
+    public ServiceDate(@NonNull String serviceId, @NonNull Calendar date, int type) {
         this.serviceId = serviceId;
         this.date = date;
         this.type = type;
@@ -25,9 +26,11 @@ public final class ServiceDate {
     @ColumnInfo(name = "id")
     public int id;
 
+    @NonNull
     @ColumnInfo(name = "service_id", index = true)
     public String serviceId;
 
+    @NonNull
     @ColumnInfo(name = "date")
     public Calendar date;
 

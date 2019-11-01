@@ -1,5 +1,6 @@
 package me.ranmocy.rcaltrain.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
@@ -13,7 +14,7 @@ import me.ranmocy.rcaltrain.models.DayTime;
 })
 public final class Stop {
 
-    public Stop(String tripId, int sequence, int stationId, DayTime time) {
+    public Stop(@NonNull String tripId, int sequence, int stationId, @NonNull DayTime time) {
         this.tripId = tripId;
         this.sequence = sequence;
         this.stationId = stationId;
@@ -24,6 +25,7 @@ public final class Stop {
     @ColumnInfo(name = "id")
     public int id;
 
+    @NonNull
     @ColumnInfo(name = "trip_id", index = true)
     public String tripId;
 
@@ -33,6 +35,7 @@ public final class Stop {
     @ColumnInfo(name = "station_id", index = true)
     public int stationId;
 
+    @NonNull
     @ColumnInfo(name = "time")
     public DayTime time;
 }
