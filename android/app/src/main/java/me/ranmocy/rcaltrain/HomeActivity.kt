@@ -10,8 +10,6 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.LifecycleRegistryOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -21,15 +19,10 @@ import me.ranmocy.rcaltrain.ui.ResultsListAdapter
 import me.ranmocy.rcaltrain.ui.ScheduleViewModel
 import me.ranmocy.rcaltrain.ui.StationListAdapter
 
-class HomeActivity : AppCompatActivity(), View.OnClickListener, LifecycleRegistryOwner {
+class HomeActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
-        private val TAG = "HomeActivity"
-    }
-
-    private val lifecycleRegistry = LifecycleRegistry(this)
-    override fun getLifecycle(): LifecycleRegistry {
-        return lifecycleRegistry
+        private const val TAG = "HomeActivity"
     }
 
     private val scheduleViewModel: ScheduleViewModel by lazy { ViewModelProviders.of(this).get(ScheduleViewModel::class.java) }
