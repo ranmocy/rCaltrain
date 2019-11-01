@@ -1,6 +1,5 @@
 package me.ranmocy.rcaltrain.database;
 
-import androidx.room.Room;
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
@@ -27,16 +26,17 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import me.ranmocy.rcaltrain.BuildConfig;
+import androidx.room.Room;
 import me.ranmocy.rcaltrain.ScheduleLoader;
 import me.ranmocy.rcaltrain.database.ScheduleDao.ServiceType;
 import me.ranmocy.rcaltrain.models.DayTime;
 import me.ranmocy.rcaltrain.models.ScheduleResult;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 25)
+@Config(sdk = 28)
 public class ScheduleDatabaseTest {
 
     private static final Gson GSON = new Gson();
@@ -87,8 +87,7 @@ public class ScheduleDatabaseTest {
         }
 
         List<String> actual = db.getStationNamesTesting();
-        assertThat(actual).containsAllIn(weekday).inOrder();
-        assertThat(actual).containsAllIn(weekend).inOrder();
+        assertThat(actual).containsExactly(weekday, weekend).inOrder();
     }
 
     @Test
@@ -314,8 +313,8 @@ public class ScheduleDatabaseTest {
                                                                            today,
                                                                            now));
 
-                assertThat(resultTimes)
-                        .named(String.format("(%s -> %s)", fromName, toName))
+                assertWithMessage(String.format("(%s -> %s)", fromName, toName))
+                        .that(resultTimes)
                         .containsExactlyElementsIn(expectTimes)
                         .inOrder();
             }

@@ -54,17 +54,17 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:17.2.1'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'com.google.code.gson:gson:2.8.5'
-    testImplementation "com.google.truth:truth:0.34"
-    testImplementation "org.mockito:mockito-core:2.8.47"
-    testImplementation "org.robolectric:robolectric:4.3"
+    testImplementation 'com.google.code.gson:gson:2.8.6'
+    testImplementation 'com.google.truth:truth:1.0'
+    testImplementation 'org.mockito:mockito-core:3.1.0'
+    testImplementation "org.robolectric:robolectric:4.3.1"
 
     androidTestImplementation 'androidx.annotation:annotation:1.1.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    androidTestImplementation 'com.google.code.gson:gson:2.8.5'
-    androidTestImplementation "com.google.truth:truth:0.34"
+    androidTestImplementation 'com.google.code.gson:gson:2.8.6'
+    androidTestImplementation 'com.google.truth:truth:1.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
