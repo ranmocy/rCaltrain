@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "0",
+    "firebase_url": "https://rcaltrain.firebaseio.com",
+    "project_id": "rcaltrain",
+    "storage_bucket": "rcaltrain.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12345678901:android:abcde",
+        "android_client_info": {
+          "package_name": "me.ranmocy.rcaltrain"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "12345678901-test.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "me.ranmocy.rcaltrain",
+            "certificate_hash": ""
+          }
+        },
+        {
+          "client_id": "12345678901-test.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "me.ranmocy.rcaltrain",
+            "certificate_hash": ""
+          }
+        },
+        {
+          "client_id": "12345678901-test.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "test"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "12345678901-test.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
